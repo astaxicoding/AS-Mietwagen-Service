@@ -1,12 +1,9 @@
 
-import { GoogleGenAI } from "@google/genai";
 import { ContactFormData } from "../types";
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || "" });
 
 /**
  * Nutzt die kostenlose Nominatim API (OpenStreetMap) für Adressvorschläge.
- * Funktioniert ohne API-Key und ohne Quota-Limits von Gemini.
+ * Funktioniert ohne API-Key.
  */
 export const fetchPlaceSuggestions = async (input: string): Promise<{label: string, lat: number, lon: number}[]> => {
   if (!input || input.length < 2) return [];
@@ -16,8 +13,6 @@ export const fetchPlaceSuggestions = async (input: string): Promise<{label: stri
     // ca. 7.80, 49.90 bis 8.00, 50.00
     const viewbox = "7.80,50.00,8.00,49.90";
     
-    // Wir hängen " Bingen" an, wenn die Eingabe kurz ist und kein Ort enthalten scheint, 
-    // um lokale Ergebnisse zu forcieren, aber wir lassen auch allgemeine Suchen zu.
     let query = input;
     const lowerInput = input.toLowerCase();
     if (input.length < 10 && !lowerInput.includes("bingen") && !lowerInput.includes("mainz") && !lowerInput.includes("ingelheim")) {
@@ -29,7 +24,7 @@ export const fetchPlaceSuggestions = async (input: string): Promise<{label: stri
     const response = await fetch(url, {
       headers: { 
         'Accept-Language': 'de',
-        'User-Agent': 'AS-Mietwagen-Service-App' // Nominatim bittet um User-Agent
+        'User-Agent': 'AS-Mietwagen-Service-App'
       }
     });
     
@@ -38,9 +33,7 @@ export const fetchPlaceSuggestions = async (input: string): Promise<{label: stri
     const data = await response.json();
 
     return data.map((item: any) => {
-      // Wir kürzen den Label-Text etwas, da Nominatim oft sehr lange Strings liefert
       const parts = item.display_name.split(', ');
-      // Nimm die ersten 4-5 Teile für eine lesbare Adresse
       const shortLabel = parts.slice(0, 5).join(', ');
       
       return {
@@ -52,30 +45,5 @@ export const fetchPlaceSuggestions = async (input: string): Promise<{label: stri
   } catch (error) {
     console.error("Nominatim Search Error:", error);
     return [];
-  }
-};
-
-export const parseBookingRequest = async (userText: string): Promise<Partial<ContactFormData> | null> => {
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview',
-      contents: `Extrahiere Details aus: "${userText}". JSON mit name, date, pickup, destination.`,
-      config: { responseMimeType: 'application/json' }
-    });
-    const text = response.text?.trim();
-    if (!text) return {};
-    
-    // Handle potential markdown blocks
-    const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/```\s*([\s\S]*?)\s*```/);
-    const cleanJson = jsonMatch ? jsonMatch[1] : text;
-    
-    try {
-      return JSON.parse(cleanJson || "{}");
-    } catch (e) {
-      console.error("Error parsing Gemini JSON:", e);
-      return {};
-    }
-  } catch (error) {
-    return null; // Fallback auf manuelle Eingabe
   }
 };

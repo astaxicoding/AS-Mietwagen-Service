@@ -5,7 +5,7 @@ import Button from './Button';
 import LiveMap from './LiveMap';
 import Logo from './Logo';
 import { BookingDetails, BookingServiceOption, PaymentMethod } from '../types';
-import { fetchPlaceSuggestions } from '../services/geminiService';
+import { fetchPlaceSuggestions } from '../services/locationService';
 import { sendBookingEmailToOwner, sendBookingEmailToCustomer } from '../services/emailService';
 import { calculateFullTripMetrics, checkAvailability, saveBooking } from '../services/bookingService';
 
