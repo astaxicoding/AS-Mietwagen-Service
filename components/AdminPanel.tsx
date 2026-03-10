@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Lock, LogOut, Settings, MessageSquare, Newspaper, ShieldCheck, Calendar as CalendarIcon, ArrowLeft, Loader2, User, Key } from 'lucide-react';
-import { auth, signInWithPopup, googleProvider, signOut, onAuthStateChanged, db, doc, getDoc, onSnapshot, updateDoc, setDoc, signInAnonymously } from '../firebase';
+import { auth, signOut, db, doc, onSnapshot, setDoc, signInAnonymously } from '../firebase';
 import Guestbook from './Guestbook';
 import News from './News';
 import AdminCalendar from './AdminCalendar';
@@ -33,39 +33,16 @@ const AdminPanel: React.FC = () => {
           setIsAdmin(true);
           setUser({ email: 'admin@as-taxi.de', displayName: 'AS.TAXI' });
         } catch (err: any) {
-          if (err.code === 'auth/admin-restricted-operation') {
-            console.warn('Anonymous Auth is not enabled in Firebase Console. Please enable it to use custom login.');
-          } else {
-            console.error('Failed to restore anonymous session:', err);
-          }
+          console.error('Failed to restore anonymous session:', err);
           // Still allow UI access if token is valid, but Firestore might fail
           setIsAdmin(true);
           setUser({ email: 'admin@as-taxi.de', displayName: 'AS.TAXI' });
         }
       }
+      setIsLoading(false);
     };
     
     restoreSession();
-
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser && !isAdmin) {
-        setUser(currentUser);
-        // Check if user is admin in Firestore or by email
-        const adminEmail = "as.taxi.coding@gmail.com";
-        const isEmailAdmin = currentUser.email === adminEmail && currentUser.emailVerified;
-        
-        try {
-          const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-          const isDocAdmin = userDoc.exists() && userDoc.data().role === 'admin';
-          if (isEmailAdmin || isDocAdmin) {
-            setIsAdmin(true);
-          }
-        } catch (err) {
-          if (isEmailAdmin) setIsAdmin(true);
-        }
-      }
-      setIsLoading(false);
-    });
 
     // Fetch Google Stats from Firestore
     const statsUnsubscribe = onSnapshot(doc(db, 'settings', 'google-stats'), (doc) => {
@@ -77,7 +54,6 @@ const AdminPanel: React.FC = () => {
     });
 
     return () => {
-      unsubscribe();
       statsUnsubscribe();
     };
   }, []);
@@ -107,11 +83,7 @@ const AdminPanel: React.FC = () => {
         try {
           await signInAnonymously(auth);
         } catch (authErr: any) {
-          if (authErr.code === 'auth/admin-restricted-operation') {
-            console.warn('Anonymous Auth is not enabled in Firebase Console. Please enable it to use custom login.');
-          } else {
-            console.error('Firebase Auth Error:', authErr);
-          }
+          console.error('Firebase Auth Error:', authErr);
         }
         setIsAdmin(true);
         setUser({ email: 'admin@as-taxi.de', displayName: 'AS.TAXI' });
@@ -124,18 +96,13 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  const handleLogin = async () => {
-    setError('');
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (err: any) {
-      setError('Login fehlgeschlagen: ' + err.message);
-    }
-  };
-
   const handleLogout = async () => {
     sessionStorage.removeItem('adminToken');
-    await signOut(auth);
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
     setIsAdmin(false);
     setUser(null);
   };
@@ -224,17 +191,6 @@ const AdminPanel: React.FC = () => {
               Anmelden
             </Button>
           </form>
-
-          <div className="mt-8 pt-8 border-t border-gray-100">
-            <p className="text-center text-[10px] font-black text-gray-300 uppercase tracking-widest mb-4">Oder mit Google</p>
-            <button 
-              onClick={handleLogin} 
-              className="w-full bg-white border border-gray-100 text-gray-600 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-gray-50 transition-all flex items-center justify-center gap-3"
-            >
-              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-4 h-4" />
-              Google Login
-            </button>
-          </div>
         </div>
       </div>
     );
