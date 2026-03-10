@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AS Taxi und Mietwagen Service | Bingen am Rhein</title>
+    <meta name="description" content="AS Taxi und Mietwagen Service in Bingen am Rhein. Zentrale am Stadtbahnhof. Pünktlich, zügig & freundlich." />
+    <link rel="icon" href="https://image2url.com/r2/default/images/1772004831119-52dfe8cc-8b8b-47d2-b5c2-77a5e5587538.png" type="image/png">
+    
+    <!-- Leaflet Map CSS -->
+    <script>console.log('HTML Head loading...');</script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              primary: '#000000',
+              secondary: '#ea8e24',
+              dark: '#111111',
+              light: '#f4f4f4',
+            },
+            fontFamily: {
+              sans: ['Montserrat', 'sans-serif'],
+              body: ['Open Sans', 'sans-serif'],
+            },
+            container: {
+              center: true,
+              padding: '1rem',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      html { scroll-behavior: smooth; }
+      body { font-family: 'Open Sans', sans-serif; color: #333; margin: 0; padding: 0; }
+      #root { min-height: 100vh; display: block !important; visibility: visible !important; background: #fff; }
+      h1, h2, h3, h4, h5, h6 { font-family: 'Montserrat', sans-serif; }
+      /* Leaflet Custom Styles */
+      .leaflet-container { width: 100%; height: 100%; z-index: 1; }
+      .leaflet-control-attribution { display: none !important; }
+    </style>
+    <script>
+      window.onerror = function(msg, url, line, col, error) {
+        console.log("GLOBAL ERROR:", msg, "at", url, ":", line);
+        var debug = document.createElement('div');
+        debug.style.position = 'fixed';
+        debug.style.bottom = '0';
+        debug.style.left = '0';
+        debug.style.background = 'black';
+        debug.style.color = 'red';
+        debug.style.zIndex = '10000';
+        debug.style.padding = '10px';
+        debug.innerHTML = 'ERROR: ' + msg;
+        document.body.appendChild(debug);
+      };
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- Leaflet JS -->
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
