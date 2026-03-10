@@ -24,22 +24,25 @@ const AdminPanel: React.FC = () => {
   useEffect(() => {
     // Check for existing session
     const restoreSession = async () => {
-      const sessionToken = sessionStorage.getItem('adminToken');
-      if (sessionToken === 'admin-session-token-123') {
-        try {
-          if (!auth.currentUser) {
-            await signInAnonymously(auth);
-          }
+      const safetyTimer = setTimeout(() => {
+        setIsLoading(false);
+      }, 5000);
+
+      try {
+        const sessionToken = sessionStorage.getItem('adminToken');
+        if (sessionToken === 'admin-session-token-123') {
           setIsAdmin(true);
           setUser({ email: 'admin@as-taxi.de', displayName: 'AS.TAXI' });
-        } catch (err: any) {
-          console.error('Failed to restore anonymous session:', err);
-          // Still allow UI access if token is valid, but Firestore might fail
-          setIsAdmin(true);
-          setUser({ email: 'admin@as-taxi.de', displayName: 'AS.TAXI' });
+          
+          // Background auth
+          signInAnonymously(auth).catch(err => console.error('Background auth failed:', err));
         }
+      } catch (err) {
+        console.error('Session restoration failed:', err);
+      } finally {
+        clearTimeout(safetyTimer);
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
     
     restoreSession();
@@ -64,11 +67,17 @@ const AdminPanel: React.FC = () => {
     setIsLoggingIn(true);
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
       const response = await fetch('/api/admin/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        body: JSON.stringify({ username, password }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const data = await response.json();
@@ -79,14 +88,13 @@ const AdminPanel: React.FC = () => {
       const data = await response.json();
       if (data.success) {
         sessionStorage.setItem('adminToken', data.token);
-        // Sign in anonymously to Firebase so we can use Firestore
-        try {
-          await signInAnonymously(auth);
-        } catch (authErr: any) {
-          console.error('Firebase Auth Error:', authErr);
-        }
         setIsAdmin(true);
         setUser({ email: 'admin@as-taxi.de', displayName: 'AS.TAXI' });
+        
+        // Background auth to Firebase so we can use Firestore
+        signInAnonymously(auth).catch(authErr => {
+          console.error('Firebase Auth Error (Background):', authErr);
+        });
       }
     } catch (err) {
       console.error('Login error:', err);

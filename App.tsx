@@ -14,8 +14,7 @@ import Datenschutz from './components/Datenschutz';
 import Preloader from './components/Preloader';
 import PromoPopup from './components/PromoPopup';
 
-// Lazy load complex pages
-const AdminPanel = React.lazy(() => import('./components/AdminPanel'));
+import AdminPanel from './components/AdminPanel';
 const LeistungenPage = React.lazy(() => import('./components/LeistungenPage'));
 const TaxiCareInfo = React.lazy(() => import('./components/TaxiCareInfo'));
 

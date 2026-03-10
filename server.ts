@@ -51,15 +51,26 @@ app.post("/api/send-email", async (req, res) => {
 });
 
 app.post("/api/admin/login", (req, res) => {
-  const { username, password } = req.body;
-  const adminUser = process.env.ADMIN_USERNAME || "AS.TAXI";
-  const adminPass = process.env.ADMIN_PASSWORD || "##ASTAXI##";
+  try {
+    const { username, password } = req.body || {};
+    const adminUser = process.env.ADMIN_USERNAME || "AS.TAXI";
+    const adminPass = process.env.ADMIN_PASSWORD || "##ASTAXI##";
 
-  if (username === adminUser && password === adminPass) {
-    res.json({ success: true, token: "admin-session-token-123" });
-  } else {
-    res.status(401).json({ success: false, message: "Ungültige Anmeldedaten" });
+    if (username === adminUser && password === adminPass) {
+      res.json({ success: true, token: "admin-session-token-123" });
+    } else {
+      res.status(401).json({ success: false, message: "Ungültige Anmeldedaten" });
+    }
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ success: false, message: "Interner Serverfehler" });
   }
+});
+
+// Error handler
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error(err.stack);
+  res.status(500).json({ success: false, message: "Etwas ist schief gelaufen!" });
 });
 
 async function startServer() {
