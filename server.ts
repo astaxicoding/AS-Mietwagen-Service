@@ -84,9 +84,9 @@ app.use((err: any, req: any, res: any, next: any) => {
 });
 
 // Vite middleware for development
-const isProd = process.env.NODE_ENV === "production" || !!process.env.VERCEL;
+const isDev = process.env.NODE_ENV !== "production" && !process.env.VERCEL;
 
-if (!isProd) {
+if (isDev) {
   try {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
