@@ -7,11 +7,14 @@ interface LiveMapProps {
   onRouteCalculated?: (distanceKm: number, durationMin: number) => void;
 }
 
+const HOME_COORDS = { lat: 49.966, lon: 7.898 };
+
 const LiveMap: React.FC<LiveMapProps> = ({ pickupCoords, destinationCoords, onRouteCalculated }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const polylineRef = useRef<any>(null);
+  const approachPolylineRef = useRef<any>(null);
   const [isLReady, setIsLReady] = useState(false);
 
   // Check for Leaflet availability
@@ -31,22 +34,27 @@ const LiveMap: React.FC<LiveMapProps> = ({ pickupCoords, destinationCoords, onRo
     if (!isLReady || !mapContainerRef.current || mapInstanceRef.current) return;
 
     const L = (window as any).L;
+    if (!L) return;
+
     try {
       // Karte erstellen
       mapInstanceRef.current = L.map(mapContainerRef.current, {
-        center: [49.966, 7.898],
+        center: [HOME_COORDS.lat, HOME_COORDS.lon],
         zoom: 13,
         zoomControl: false,
-        attributionControl: false
+        attributionControl: false,
+        fadeAnimation: false,
+        zoomAnimation: false,
+        markerZoomAnimation: false
       });
 
-      // Standard OSM Tiles (zuverlässiger als CartoDB in manchen Umgebungen)
+      // Standard OSM Tiles
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19
       }).addTo(mapInstanceRef.current);
 
       // WICHTIG: invalidateSize aufrufen
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (mapInstanceRef.current) {
           mapInstanceRef.current.invalidateSize();
         }
@@ -61,6 +69,7 @@ const LiveMap: React.FC<LiveMapProps> = ({ pickupCoords, destinationCoords, onRo
       resizeObserver.observe(mapContainerRef.current);
 
       return () => {
+        clearTimeout(timer);
         resizeObserver.disconnect();
         if (mapInstanceRef.current) {
           mapInstanceRef.current.remove();
@@ -82,8 +91,20 @@ const LiveMap: React.FC<LiveMapProps> = ({ pickupCoords, destinationCoords, onRo
       markersRef.current.forEach(m => m.remove());
       markersRef.current = [];
       if (polylineRef.current) polylineRef.current.remove();
+      if (approachPolylineRef.current) approachPolylineRef.current.remove();
 
       const points: any[] = [];
+
+      // Home Marker (Base)
+      const homeMarker = L.marker([HOME_COORDS.lat, HOME_COORDS.lon], {
+        icon: L.divIcon({
+          className: 'custom-div-icon',
+          html: `<div style="background-color: #333; width: 10px; height: 10px; border-radius: 50%; border: 2px solid white;"></div>`,
+          iconSize: [10, 10],
+          iconAnchor: [5, 5]
+        })
+      }).addTo(mapInstanceRef.current);
+      markersRef.current.push(homeMarker);
 
       if (pickupCoords) {
         const marker = L.marker([pickupCoords.lat, pickupCoords.lon], {
@@ -114,11 +135,12 @@ const LiveMap: React.FC<LiveMapProps> = ({ pickupCoords, destinationCoords, onRo
       if (points.length === 2) {
         const fetchRoute = async () => {
           try {
-            const url = `https://router.project-osrm.org/route/v1/driving/${pickupCoords!.lon},${pickupCoords!.lat};${destinationCoords!.lon},${destinationCoords!.lat}?overview=full&geometries=geojson`;
+            // Route: Home -> Pickup -> Destination
+            const url = `https://router.project-osrm.org/route/v1/driving/${HOME_COORDS.lon},${HOME_COORDS.lat};${pickupCoords!.lon},${pickupCoords!.lat};${destinationCoords!.lon},${destinationCoords!.lat}?overview=full&geometries=geojson`;
             const response = await fetch(url);
             const data = await response.json();
 
-            if (data.code === 'Ok' && data.routes.length > 0) {
+            if (data.code === 'Ok' && data.routes.length > 0 && mapInstanceRef.current) {
               const route = data.routes[0];
               const coordinates = route.geometry.coordinates.map((c: any) => [c[1], c[0]]);
               
@@ -138,8 +160,7 @@ const LiveMap: React.FC<LiveMapProps> = ({ pickupCoords, destinationCoords, onRo
 
               mapInstanceRef.current.fitBounds(polylineRef.current.getBounds(), { 
                 padding: [80, 80],
-                animate: true,
-                duration: 1
+                animate: false
               });
             } else {
               drawStraightLine();
@@ -151,7 +172,9 @@ const LiveMap: React.FC<LiveMapProps> = ({ pickupCoords, destinationCoords, onRo
         };
 
         const drawStraightLine = () => {
-          polylineRef.current = L.polyline(points, {
+          if (!mapInstanceRef.current) return;
+          const allPoints = [[HOME_COORDS.lat, HOME_COORDS.lon], ...points];
+          polylineRef.current = L.polyline(allPoints, {
             color: '#ea8e24',
             weight: 5,
             opacity: 0.9,
@@ -159,23 +182,29 @@ const LiveMap: React.FC<LiveMapProps> = ({ pickupCoords, destinationCoords, onRo
             lineCap: 'round'
           }).addTo(mapInstanceRef.current);
 
-          const dist = mapInstanceRef.current.distance(points[0], points[1]) / 1000;
+          // Calculate total straight line distance
+          let dist = 0;
+          for (let i = 0; i < allPoints.length - 1; i++) {
+            dist += mapInstanceRef.current.distance(allPoints[i], allPoints[i+1]) / 1000;
+          }
+          
           const dur = Math.round(dist * 1.8 + 6);
           onRouteCalculated?.(dist, dur);
 
-          mapInstanceRef.current.fitBounds(L.latLngBounds(points), { 
+          mapInstanceRef.current.fitBounds(L.latLngBounds(allPoints), { 
             padding: [80, 80],
-            animate: true,
-            duration: 1
+            animate: false
           });
         };
 
         fetchRoute();
-      } else if (points.length === 1) {
-        mapInstanceRef.current.setView(points[0], 15, { animate: true });
+      } else if (points.length === 1 && mapInstanceRef.current) {
+        mapInstanceRef.current.setView(points[0], 15, { animate: false });
       }
       
-      mapInstanceRef.current.invalidateSize();
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.invalidateSize();
+      }
     } catch (err) {
       console.error("Map update error:", err);
     }

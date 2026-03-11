@@ -38,11 +38,11 @@ export const calculateRoute = async (points: {lat: number, lon: number}[]) => {
 };
 
 /**
- * Berechnet die gesamte Fahrzeit inkl. Rückfahrt und Anfahrt
+ * Berechnet die gesamte Fahrzeit inkl. Anfahrt (Home -> Pickup -> Destination)
  */
 export const calculateFullTripMetrics = async (pickup: {lat: number, lon: number}, dest: {lat: number, lon: number}) => {
-  // Route: Home -> Pickup -> Destination -> Home
-  const points = [HOME_COORDS, pickup, dest, HOME_COORDS];
+  // Route: Home -> Pickup -> Destination
+  const points = [HOME_COORDS, pickup, dest];
   return await calculateRoute(points);
 };
 

@@ -46,14 +46,15 @@ const PromoPopup: React.FC<PromoPopupProps> = ({ isOpen, onClose }) => {
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative w-full max-w-lg bg-white rounded-sm overflow-hidden shadow-2xl"
+            className="relative w-full max-w-sm bg-white rounded-sm overflow-hidden shadow-2xl"
           >
-            {/* Close Button */}
+            {/* Close Button - Larger for iPad/Touch */}
             <button
               onClick={handleClose}
-              className="absolute top-4 right-4 z-20 bg-black/50 hover:bg-black text-white p-2 rounded-full transition-colors"
+              className="absolute top-2 right-2 z-20 bg-black/60 hover:bg-black text-white p-2.5 rounded-full transition-colors shadow-lg"
+              aria-label="Schließen"
             >
-              <X size={20} />
+              <X size={24} />
             </button>
 
             {/* Image Container */}
@@ -78,12 +79,12 @@ const PromoPopup: React.FC<PromoPopupProps> = ({ isOpen, onClose }) => {
             </div>
 
             {/* Text Call Button (Alternative for accessibility and clarity) */}
-            <div className="p-4 bg-black">
+            <div className="p-3 bg-black">
               <a
                 href={`tel:${dialNumber}`}
-                className="w-full bg-secondary hover:bg-secondary/90 text-white py-4 rounded-sm font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 transition-colors"
+                className="w-full bg-secondary hover:bg-secondary/90 text-white py-3 rounded-sm font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-colors"
               >
-                <Phone size={18} fill="currentColor" />
+                <Phone size={16} fill="currentColor" />
                 Jetzt Hilfe rufen
               </a>
             </div>

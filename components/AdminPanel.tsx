@@ -68,7 +68,7 @@ const AdminPanel: React.FC = () => {
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000);
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // Increased to 30s for cold starts
 
       const response = await fetch('/api/admin/login', {
         method: 'POST',
@@ -80,8 +80,14 @@ const AdminPanel: React.FC = () => {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        const data = await response.json();
-        setError(data.message || 'Anmeldung fehlgeschlagen');
+        let errorMessage = 'Anmeldung fehlgeschlagen';
+        try {
+          const data = await response.json();
+          errorMessage = data.message || errorMessage;
+        } catch (e) {
+          errorMessage = `Server-Fehler: ${response.status} ${response.statusText}`;
+        }
+        setError(errorMessage);
         return;
       }
 
@@ -96,9 +102,13 @@ const AdminPanel: React.FC = () => {
           console.error('Firebase Auth Error (Background):', authErr);
         });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Login error:', err);
-      setError('Verbindungsfehler zum Server. Bitte prüfen Sie, ob der Server läuft.');
+      if (err.name === 'AbortError') {
+        setError('Zeitüberschreitung bei der Verbindung. Der Server braucht zu lange zum Antworten (Cold Start). Bitte versuchen Sie es gleich noch einmal.');
+      } else {
+        setError('Verbindungsfehler zum Server. Bitte prüfen Sie Ihre Internetverbindung oder ob der Server läuft.');
+      }
     } finally {
       setIsLoggingIn(false);
     }

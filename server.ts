@@ -11,17 +11,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export const app = express();
-export default app;
 app.use(express.json());
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // API Routes
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
+  console.log("Health check hit");
+  res.json({ status: "ok", env: process.env.NODE_ENV, vercel: !!process.env.VERCEL });
 });
 
 app.post("/api/send-email", async (req, res) => {
+  console.log("Email request received");
   if (!resend) {
     console.error("RESEND_API_KEY is not set");
     return res.status(500).json({ success: false, message: "Email service not configured" });
@@ -51,15 +52,24 @@ app.post("/api/send-email", async (req, res) => {
 });
 
 app.post("/api/admin/login", (req, res) => {
+  console.log("Admin login attempt received");
   try {
     const { username, password } = req.body || {};
-    const adminUser = process.env.ADMIN_USERNAME || "AS.TAXI";
-    const adminPass = process.env.ADMIN_PASSWORD || "##ASTAXI##";
+    
+    // Check for various possible environment variable names
+    const adminUser = process.env.ADMIN_USERNAME || process.env.USER || "AS.TAXI";
+    const adminPass = process.env.ADMIN_PASSWORD || process.env.PASSWORD || process.env["AS.TAXI.ROBIN"] || "##ASTAXI##";
+
+    console.log(`Login attempt - Username: "${username}", Expected: "${adminUser}"`);
+    // Never log the actual password in production, but we can log if it's set
+    console.log(`Environment variables check: ADMIN_PASSWORD is ${process.env.ADMIN_PASSWORD ? 'SET' : 'NOT SET'}, AS.TAXI.ROBIN is ${process.env["AS.TAXI.ROBIN"] ? 'SET' : 'NOT SET'}`);
 
     if (username === adminUser && password === adminPass) {
+      console.log("Login successful");
       res.json({ success: true, token: "admin-session-token-123" });
     } else {
-      res.status(401).json({ success: false, message: "Ungültige Anmeldedaten" });
+      console.log("Login failed: Invalid credentials");
+      res.status(401).json({ success: false, message: "Ungültige Anmeldedaten. Bitte prüfen Sie Benutzername und Passwort." });
     }
   } catch (err) {
     console.error("Login error:", err);
@@ -69,34 +79,34 @@ app.post("/api/admin/login", (req, res) => {
 
 // Error handler
 app.use((err: any, req: any, res: any, next: any) => {
-  console.error(err.stack);
+  console.error("Express error handler:", err);
   res.status(500).json({ success: false, message: "Etwas ist schief gelaufen!" });
 });
 
-async function startServer() {
-  const PORT = 3000;
+// Vite middleware for development
+const isProd = process.env.NODE_ENV === "production" || !!process.env.VERCEL;
 
-  // Vite middleware for development
-  if (process.env.NODE_ENV !== "production") {
+if (!isProd) {
+  try {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
     });
     app.use(vite.middlewares);
-  } else {
-    app.use(express.static("dist"));
-    // Handle SPA routing
-    app.get("*", (req, res) => {
-      res.sendFile(path.resolve(__dirname, "dist", "index.html"));
-    });
+  } catch (e) {
+    console.error("Failed to load Vite middleware:", e);
   }
-
-  if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
-    app.listen(PORT, "0.0.0.0", () => {
-      console.log(`Server running on http://localhost:${PORT}`);
-    });
-  }
+} else {
+  app.use(express.static("dist"));
 }
 
-startServer();
+// Only listen if not on Vercel
+if (!process.env.VERCEL && process.env.NODE_ENV !== "production") {
+  const PORT = 3000;
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;

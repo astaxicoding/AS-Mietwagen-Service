@@ -164,8 +164,8 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
     
     let total = service.basePrice + (routeDistance * service.pricePerKm);
     
-    // Großraum surcharge
-    if ((service.id === 'bus' || assignedVehicleId?.startsWith('bus')) && details.passengers >= 5) {
+    // Großraum surcharge (always 5.90€ for bus service)
+    if (service.id === 'bus' || assignedVehicleId?.startsWith('bus')) {
       total += 5.90;
     }
 

@@ -4,7 +4,7 @@ import { getAuth, signOut, onAuthStateChanged, signInAnonymously } from 'firebas
 import { getFirestore, collection, doc, getDoc, getDocs, setDoc, addDoc, updateDoc, deleteDoc, onSnapshot, query, where, orderBy, limit, Timestamp, getDocFromServer } from 'firebase/firestore';
 
 // Import the Firebase configuration
-import firebaseConfig from './firebase-applet-config.json';
+import firebaseConfig from '../firebase-applet-config.json';
 
 // Initialize Firebase SDK
 const app = initializeApp(firebaseConfig);
