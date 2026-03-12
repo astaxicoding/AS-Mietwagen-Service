@@ -10,7 +10,7 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const app = express();
+const app = express();
 app.use(express.json());
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -60,10 +60,6 @@ app.post("/api/admin/login", (req, res) => {
     const adminUser = process.env.ADMIN_USERNAME || process.env.USER || "AS.TAXI";
     const adminPass = process.env.ADMIN_PASSWORD || process.env.PASSWORD || process.env["AS.TAXI.ROBIN"] || "##ASTAXI##";
 
-    console.log(`Login attempt - Username: "${username}", Expected: "${adminUser}"`);
-    // Never log the actual password in production, but we can log if it's set
-    console.log(`Environment variables check: ADMIN_PASSWORD is ${process.env.ADMIN_PASSWORD ? 'SET' : 'NOT SET'}, AS.TAXI.ROBIN is ${process.env["AS.TAXI.ROBIN"] ? 'SET' : 'NOT SET'}`);
-
     if (username === adminUser && password === adminPass) {
       console.log("Login successful");
       res.json({ success: true, token: "admin-session-token-123" });
@@ -83,7 +79,7 @@ app.use((err: any, req: any, res: any, next: any) => {
   res.status(500).json({ success: false, message: "Etwas ist schief gelaufen!" });
 });
 
-// Vite middleware for development
+// Vite middleware for development (AI Studio Preview)
 const isDev = process.env.NODE_ENV !== "production" && !process.env.VERCEL;
 
 if (isDev) {
@@ -95,14 +91,12 @@ if (isDev) {
     });
     app.use(vite.middlewares);
   } catch (e) {
-    console.error("Failed to load Vite middleware:", e);
+    console.log("Vite middleware not loaded");
   }
-} else {
-  app.use(express.static("dist"));
 }
 
 // Only listen if not on Vercel
-if (!process.env.VERCEL && process.env.NODE_ENV !== "production") {
+if (!process.env.VERCEL) {
   const PORT = 3000;
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
