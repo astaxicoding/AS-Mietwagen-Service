@@ -10,8 +10,8 @@ import Footer from '@/components/Footer';
 import BookingOverlay from '@/components/BookingOverlay';
 import AdminPanel from '@/components/AdminPanel';
 import LeistungenPage from '@/components/LeistungenPage';
-import Impressum from '@/components/Impressum';
-import Datenschutz from '@/components/Datenschutz';
+import LegalImpressum from '@/components/LegalImpressum';
+import LegalDatenschutz from '@/components/LegalDatenschutz';
 import PromoPopup from '@/components/PromoPopup';
 
 function ScrollToTop() {
@@ -76,12 +76,12 @@ export default function App() {
         preselectedType={preselectedType}
       />
       
-      <Impressum 
+      <LegalImpressum 
         isOpen={isImpressumOpen} 
         onClose={() => setIsImpressumOpen(false)} 
       />
       
-      <Datenschutz 
+      <LegalDatenschutz 
         isOpen={isDatenschutzOpen} 
         onClose={() => setIsDatenschutzOpen(false)} 
       />
