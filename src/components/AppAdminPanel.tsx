@@ -3,11 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Lock, LogOut, Settings, MessageSquare, Newspaper, ShieldCheck, Calendar as CalendarIcon, ArrowLeft, Loader2, User, Key } from 'lucide-react';
 import { auth, signOut, db, doc, onSnapshot, setDoc, signInAnonymously } from '@/firebase';
-import Guestbook from '@/components/Guestbook';
-import News from '@/components/News';
-import AdminCalendar from '@/components/AdminCalendar';
-import Button from '@/components/Button';
-import Logo from '@/components/Logo';
+import Guestbook from '@/components/AppGuestbook';
+import News from '@/components/AppNews';
+import AdminCalendar from '@/components/AppAdminCalendar';
+import Button from '@/components/AppButton';
+import Logo from '@/components/AppLogo';
 
 const AdminPanel: React.FC = () => {
   const [user, setUser] = useState<any>(null);

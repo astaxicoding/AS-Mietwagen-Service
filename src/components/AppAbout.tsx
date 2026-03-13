@@ -1,6 +1,6 @@
 
 import React from 'react';
-import Button from '@/components/Button';
+import Button from '@/components/AppButton';
 import { CONTACT_INFO } from '@/constants';
 
 const About: React.FC = () => {

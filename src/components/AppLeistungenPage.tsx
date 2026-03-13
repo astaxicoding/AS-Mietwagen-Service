@@ -2,9 +2,9 @@
 import React, { useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { ShoppingBag, Plane, FileText, Heart, GraduationCap, Users, Stethoscope, ArrowRight, CheckCircle } from 'lucide-react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import Button from '@/components/Button';
+import Header from '@/components/AppHeader';
+import Footer from '@/components/AppFooter';
+import Button from '@/components/AppButton';
 
 interface LeistungenPageProps {
   onOpenBooking: (type?: string) => void;

@@ -1,18 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import Header from '@/components/Header';
-import Hero from '@/components/Hero';
-import About from '@/components/About';
-import Services from '@/components/Services';
-import News from '@/components/News';
-import Guestbook from '@/components/Guestbook';
-import Footer from '@/components/Footer';
-import BookingOverlay from '@/components/BookingOverlay';
-import AdminPanel from '@/components/AdminPanel';
-import LeistungenPage from '@/components/LeistungenPage';
+import Header from '@/components/AppHeader';
+import Hero from '@/components/AppHero';
+import About from '@/components/AppAbout';
+import Services from '@/components/AppServices';
+import News from '@/components/AppNews';
+import Guestbook from '@/components/AppGuestbook';
+import Footer from '@/components/AppFooter';
+import BookingOverlay from '@/components/AppBookingOverlay';
+import AdminPanel from '@/components/AppAdminPanel';
+import LeistungenPage from '@/components/AppLeistungenPage';
 import LegalImpressum from '@/components/LegalImpressum';
 import LegalDatenschutz from '@/components/LegalDatenschutz';
-import PromoPopup from '@/components/PromoPopup';
+import PromoPopup from '@/components/AppPromoPopup';
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Star } from 'lucide-react';
-import Logo from '@/components/Logo';
+import Logo from '@/components/AppLogo';
 import { db, doc, getDoc } from '@/firebase';
 
 interface PreloaderProps {

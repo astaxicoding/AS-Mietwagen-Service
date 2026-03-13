@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { X } from 'lucide-react';
-import Logo from '@/components/Logo';
+import Logo from '@/components/AppLogo';
 import { CONTACT_INFO } from '@/constants';
 
 interface ImpressumProps {

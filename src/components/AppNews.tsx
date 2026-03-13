@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Newspaper, Calendar, Trash2, Edit2, Plus, X, Send, Loader2 } from 'lucide-react';
 import { NewsPost } from '@/types';
-import Button from '@/components/Button';
+import Button from '@/components/AppButton';
 import { db, collection, onSnapshot, query, orderBy, addDoc, deleteDoc, doc, updateDoc, Timestamp, handleFirestoreError, OperationType } from '@/firebase';
 
 interface NewsProps {

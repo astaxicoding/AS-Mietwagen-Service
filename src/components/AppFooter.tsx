@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { CONTACT_INFO } from '@/constants';
 import { Facebook, Instagram, Phone, MapPin, Mail, Clock } from 'lucide-react';
-import Logo from '@/components/Logo';
+import Logo from '@/components/AppLogo';
 
 interface FooterProps {
   onOpenImpressum: () => void;

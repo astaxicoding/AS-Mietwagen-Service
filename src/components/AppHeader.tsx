@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Phone, Calendar } from 'lucide-react';
 import { NAV_ITEMS, CONTACT_INFO } from '@/constants';
-import Button from '@/components/Button';
-import Logo from '@/components/Logo';
+import Button from '@/components/AppButton';
+import Logo from '@/components/AppLogo';
 
 interface HeaderProps {
   onOpenBooking?: () => void;
