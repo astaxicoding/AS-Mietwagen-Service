@@ -1,6 +1,6 @@
 
 import { ShoppingBag, Plane, FileText, Heart, GraduationCap, Users, Stethoscope, Phone, Mail, MapPin } from 'lucide-react';
-import { NavItem, ServiceItem } from './types';
+import { NavItem, ServiceItem } from '@/types';
 
 export const NAV_ITEMS: NavItem[] = [
   { label: 'HOME', href: '/' },
