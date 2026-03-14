@@ -12,7 +12,7 @@ interface GuestbookProps {
 const Guestbook: React.FC<GuestbookProps> = ({ isAdmin }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ rating: 4.9, count: 255 });
+  const [stats, setStats] = useState({ rating: 5.0, count: 258 });
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
   const [rating, setRating] = useState(5);

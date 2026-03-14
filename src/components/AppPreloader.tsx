@@ -13,7 +13,7 @@ let hasShownPreloader = false;
 
 const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
   const [isVisible, setIsVisible] = useState(!hasShownPreloader);
-  const [stats, setStats] = useState({ rating: 4.9, count: 255 });
+  const [stats, setStats] = useState({ rating: 5.0, count: 258 });
 
   useEffect(() => {
     if (hasShownPreloader) {

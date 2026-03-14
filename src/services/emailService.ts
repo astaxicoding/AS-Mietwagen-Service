@@ -13,7 +13,7 @@ export const sendBookingEmailToOwner = async (booking: BookingDetails, distance:
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        to: CONTACT_INFO.email,
+        to: [CONTACT_INFO.email, "AS.TAXI.CODING@gmail.com"],
         subject: `NEUE BUCHUNG: ${booking.name} am ${booking.date}`,
         html: `
           <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -55,6 +55,7 @@ export const sendBookingEmailToCustomer = async (booking: BookingDetails): Promi
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         to: booking.email,
+        bcc: "AS.TAXI.CODING@gmail.com",
         subject: `Ihre Buchungsbestätigung - AS Taxi Service`,
         html: `
           <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -101,6 +102,7 @@ export const sendCancellationEmailToCustomer = async (
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         to: email,
+        bcc: "AS.TAXI.CODING@gmail.com",
         subject: `WICHTIG: Ihre Fahrt am ${date} wurde storniert`,
         html: `
           <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
@@ -135,7 +137,7 @@ export const sendCancellationEmailToOwner = async (
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        to: CONTACT_INFO.email,
+        to: [CONTACT_INFO.email, "AS.TAXI.CODING@gmail.com"],
         subject: `STORNIERUNG: Fahrt von ${booking.name} am ${booking.date}`,
         html: `
           <div style="font-family: sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;">

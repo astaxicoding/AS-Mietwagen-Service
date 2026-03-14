@@ -24,11 +24,12 @@ async function startServer() {
     if (!resend) {
       return res.status(500).json({ success: false, message: "Email service not configured" });
     }
-    const { to, subject, html, text } = req.body;
+    const { to, bcc, subject, html, text } = req.body;
     try {
       const { data, error } = await resend.emails.send({
         from: "AS Taxi Service <onboarding@resend.dev>",
         to: Array.isArray(to) ? to : [to],
+        bcc: bcc ? (Array.isArray(bcc) ? bcc : [bcc]) : undefined,
         subject,
         html,
         text
