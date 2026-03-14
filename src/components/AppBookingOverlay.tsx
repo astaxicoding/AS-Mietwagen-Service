@@ -7,7 +7,7 @@ import Logo from '@/components/AppLogo';
 import { BookingDetails, BookingServiceOption, PaymentMethod } from '@/types';
 import { fetchPlaceSuggestions } from '@/services/locationService';
 import { sendBookingEmailToOwner, sendBookingEmailToCustomer } from '@/services/emailService';
-import { calculateFullTripMetrics, checkAvailability, saveBooking } from '@/services/bookingService';
+import { calculateFullTripMetrics, checkAvailability, saveBooking, calculateRoute, calculatePrice } from '@/services/bookingService';
 
 interface BookingOverlayProps {
   isOpen: boolean;
@@ -46,11 +46,19 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
 
   useEffect(() => {
     if (pickupCoords && destCoords) {
+      // Calculate full trip metrics for pricing (Home -> Pickup -> Destination)
       calculateFullTripMetrics(pickupCoords, destCoords).then(metrics => {
         setTripMetrics(metrics);
+      });
+
+      // Calculate direct route metrics for display (Pickup -> Destination)
+      calculateRoute([
+        { lat: pickupCoords.lat, lon: pickupCoords.lon },
+        { lat: destCoords.lat, lon: destCoords.lon }
+      ]).then(metrics => {
         setRouteDistance(metrics.distanceKm);
         setRouteDuration(metrics.durationMin);
-      });
+      }).catch(console.error);
     }
   }, [pickupCoords, destCoords]);
 
@@ -172,14 +180,8 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
   const getPrice = (service: BookingServiceOption) => {
     if (!tripMetrics) return '---';
     
-    // Total distance = distanceHomeToPickup + routeDistance
-    // calculateFullTripMetrics already calculates Home -> Pickup -> Destination
-    let total = 3.70 + (tripMetrics.distanceKm * 2.50);
-    
-    // Großraum surcharge (always 5.90€ for bus service)
-    if (service.id === 'bus' || assignedVehicleId?.startsWith('bus')) {
-      total += 5.90;
-    }
+    const isLargeGroup = service.id === 'bus' || assignedVehicleId?.startsWith('bus');
+    let total = calculatePrice(tripMetrics.distanceKm, isLargeGroup);
 
     // Trailer surcharge
     if (details.vehicleType === 'bus' && details.hasTrailer) {
@@ -207,7 +209,7 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
       
       // 3. Verfügbarkeit prüfen
       const isLargeGroup = details.vehicleType === 'bus' || details.passengers >= 5;
-      const available = await checkAvailability(details.date, start, end, isLargeGroup);
+      const available = await checkAvailability(details.date, start, end, isLargeGroup, details.hasTrailer);
       
       if (available.length > 0) {
         setAvailableVehicles(available);
@@ -224,7 +226,7 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
           if (altStart < new Date()) continue;
           
           const altEnd = new Date(altStart.getTime() + (metrics.durationMin + 30) * 60000);
-          const altAvailable = await checkAvailability(details.date, altStart, altEnd, isLargeGroup);
+          const altAvailable = await checkAvailability(details.date, altStart, altEnd, isLargeGroup, details.hasTrailer);
           if (altAvailable.length > 0) {
             alternatives.push(altStart.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }));
           }
@@ -371,7 +373,6 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
                      key={isOpen ? 'map-mobile-active' : 'map-mobile-inactive'}
                      pickupCoords={pickupCoords ? { lat: pickupCoords.lat, lng: pickupCoords.lon } : null}
                      destinationCoords={destCoords ? { lat: destCoords.lat, lng: destCoords.lon } : null}
-                     onRouteCalculated={(dist, dur) => {setRouteDistance(dist); setRouteDuration(dur);}}
                    />
                    {/* Compact Route Info Overlay */}
                    {routeDistance && (
@@ -559,7 +560,6 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
              key={isOpen ? 'map-desktop-active' : 'map-desktop-inactive'}
              pickupCoords={pickupCoords ? { lat: pickupCoords.lat, lng: pickupCoords.lon } : null}
              destinationCoords={destCoords ? { lat: destCoords.lat, lng: destCoords.lon } : null}
-             onRouteCalculated={(dist, dur) => {setRouteDistance(dist); setRouteDuration(dur);}}
            />
            
            {/* Floating Map UI Info */}

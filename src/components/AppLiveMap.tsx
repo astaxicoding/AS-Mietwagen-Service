@@ -4,10 +4,9 @@ import L from 'leaflet';
 interface LiveMapProps {
   pickupCoords?: { lat: number; lng: number } | null;
   destinationCoords?: { lat: number; lng: number } | null;
-  onRouteCalculated?: (distance: number, duration: number) => void;
 }
 
-const LiveMap: React.FC<LiveMapProps> = ({ pickupCoords, destinationCoords, onRouteCalculated }) => {
+const LiveMap: React.FC<LiveMapProps> = ({ pickupCoords, destinationCoords }) => {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -15,13 +14,26 @@ const LiveMap: React.FC<LiveMapProps> = ({ pickupCoords, destinationCoords, onRo
   useEffect(() => {
     if (mapContainerRef.current && !mapRef.current) {
       // Initialize map
-      mapRef.current = L.map(mapContainerRef.current).setView([49.967, 7.896], 13); // Bingen coordinates
+      mapRef.current = L.map(mapContainerRef.current).setView([49.967, 7.896], 11); // Bingen coordinates, zoomed out
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap contributors & CartoDB'
       }).addTo(mapRef.current);
     }
+
+    // Ensure size is valid after mount with a delay to allow container to render
+    const timer = setTimeout(() => {
+      mapRef.current?.invalidateSize();
+    }, 300);
+    
+    return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (mapRef.current) {
+      mapRef.current.invalidateSize();
+    }
+  }, [pickupCoords, destinationCoords]);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -49,17 +61,10 @@ const LiveMap: React.FC<LiveMapProps> = ({ pickupCoords, destinationCoords, onRo
         [destinationCoords.lat, destinationCoords.lng]
       ]);
       mapRef.current.fitBounds(bounds, { padding: [50, 50] });
-      
-      // Simulate route calculation
-      if (onRouteCalculated) {
-        const distance = 10; // Placeholder
-        const duration = 15; // Placeholder
-        onRouteCalculated(distance, duration);
-      }
     } else if (pickupCoords) {
       mapRef.current.setView([pickupCoords.lat, pickupCoords.lng], 15);
     }
-  }, [pickupCoords, destinationCoords, onRouteCalculated]);
+  }, [pickupCoords, destinationCoords]);
 
   return <div ref={mapContainerRef} className="w-full h-full z-0" />;
 };

@@ -32,6 +32,8 @@ function ScrollToTop() {
   return null;
 }
 
+let hasShownTaxiCare = false;
+
 export default function App() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [isImpressumOpen, setIsImpressumOpen] = useState(false);
@@ -41,8 +43,11 @@ export default function App() {
   const [preselectedType, setPreselectedType] = useState<string | null>(null);
 
   useEffect(() => {
+    if (hasShownTaxiCare) return;
+
     const timer = setTimeout(() => {
       setIsTaxiCareOpen(true);
+      hasShownTaxiCare = true;
     }, 5000);
     return () => clearTimeout(timer);
   }, []);

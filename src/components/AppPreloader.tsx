@@ -9,11 +9,18 @@ interface PreloaderProps {
   onComplete?: () => void;
 }
 
+let hasShownPreloader = false;
+
 const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
-  const [isVisible, setIsVisible] = useState(true);
+  const [isVisible, setIsVisible] = useState(!hasShownPreloader);
   const [stats, setStats] = useState({ rating: 4.9, count: 255 });
 
   useEffect(() => {
+    if (hasShownPreloader) {
+      if (onComplete) onComplete();
+      return;
+    }
+
     const fetchStats = async () => {
       try {
         const statsDoc = await getDoc(doc(db, 'settings', 'google-stats'));
@@ -28,6 +35,7 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
 
     const timer = setTimeout(() => {
       setIsVisible(false);
+      hasShownPreloader = true;
       // We call onComplete slightly after the exit starts to ensure smooth transition
       setTimeout(() => {
         if (onComplete) onComplete();

@@ -38,18 +38,43 @@ export const calculateRoute = async (points: {lat: number, lon: number}[]) => {
 };
 
 /**
- * Berechnet die gesamte Fahrzeit inkl. Anfahrt (Home -> Pickup -> Destination)
+ * Berechnet die gesamte Fahrzeit inkl. Anfahrt und Rückfahrt (Home -> Pickup -> Destination -> Home)
  */
 export const calculateFullTripMetrics = async (pickup: {lat: number, lon: number}, dest: {lat: number, lon: number}) => {
-  // Route: Home -> Pickup -> Destination
-  const points = [HOME_COORDS, pickup, dest];
-  return await calculateRoute(points);
+  // Route: Home -> Pickup -> Destination -> Home
+  console.log('Calculating full trip metrics for:', pickup, dest);
+  const points = [HOME_COORDS, pickup, dest, HOME_COORDS];
+  const metrics = await calculateRoute(points);
+  console.log('Full trip metrics calculated:', metrics);
+  return metrics;
+};
+
+/**
+ * Berechnet den Preis der Fahrt
+ * Bingen am Rhein Espenschiedstr 1 -> Abholadresse -> Zielort
+ * 
+ * PKW: (Distanz * 2,50€) + 3,70€ Grundgebühr
+ * Bus: (Distanz * 2,50€) + 3,70€ Grundgebühr + 5,90€ Großraumzuschlag
+ */
+export const calculatePrice = (distanceKm: number, isLargeGroup: boolean) => {
+  const baseFee = 3.70; // Grundgebühr ist immer 3,70€
+  const perKm = 2.50;   // Kilometerpreis ist immer 2,50€
+  
+  // Grundpreis + (Distanz * Preis pro km)
+  let price = baseFee + (distanceKm * perKm);
+  
+  // Großraumzuschlag für Busse
+  if (isLargeGroup) {
+    price += 5.90;
+  }
+  
+  return Math.round(price * 100) / 100;
 };
 
 /**
  * Prüft die Verfügbarkeit der Fahrzeuge für einen Zeitraum
  */
-export const checkAvailability = async (date: string, startTime: Date, endTime: Date, isLargeGroup: boolean) => {
+export const checkAvailability = async (date: string, startTime: Date, endTime: Date, isLargeGroup: boolean, hasTrailer?: boolean) => {
   const path = 'availability';
   try {
     const availabilityRef = collection(db, path);
@@ -58,7 +83,22 @@ export const checkAvailability = async (date: string, startTime: Date, endTime: 
     
     const existingSlots = snapshot.docs.map(doc => doc.data());
     
-    // Verfügbare Fahrzeuge filtern
+    // 1. Trailer-Verfügbarkeit prüfen, falls angefordert
+    if (hasTrailer) {
+      const trailerBusy = existingSlots.some(s => {
+        if (!s.hasTrailer) return false;
+        const bStart = new Date(s.startTime);
+        const bEnd = new Date(s.endTime);
+        return (startTime < bEnd && endTime > bStart);
+      });
+      
+      if (trailerBusy) {
+        // Wenn der einzige Anhänger belegt ist, können wir keine Fahrt mit Anhänger anbieten
+        return [];
+      }
+    }
+
+    // 2. Verfügbare Fahrzeuge filtern
     const availableVehicles = FLEET.filter(v => {
       // Wenn Großraumfahrt, nur Busse
       if (isLargeGroup) {
@@ -126,7 +166,8 @@ export const saveBooking = async (
         date: details.date,
         startTime: startTime.toISOString(),
         endTime: endTime.toISOString(),
-        bookingId: bookingRef.id
+        bookingId: bookingRef.id,
+        hasTrailer: details.hasTrailer || false
       });
     } catch (availError) {
       console.error('Availability slot creation failed:', availError);
