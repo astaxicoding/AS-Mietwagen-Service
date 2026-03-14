@@ -40,25 +40,32 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
   const [tripTimes, setTripTimes] = useState<{start: Date, end: Date} | null>(null);
   const [alternativeTimes, setAlternativeTimes] = useState<string[]>([]);
   const [showAvailabilityError, setShowAvailabilityError] = useState(false);
+  const [isCalculatingRoute, setIsCalculatingRoute] = useState(false);
 
   const [pickupCoords, setPickupCoords] = useState<{lat: number, lon: number} | null>(null);
   const [destCoords, setDestCoords] = useState<{lat: number, lon: number} | null>(null);
 
   useEffect(() => {
     if (pickupCoords && destCoords) {
+      setIsCalculatingRoute(true);
+      
       // Calculate full trip metrics for pricing (Home -> Pickup -> Destination)
-      calculateFullTripMetrics(pickupCoords, destCoords).then(metrics => {
+      const p1 = calculateFullTripMetrics(pickupCoords, destCoords).then(metrics => {
         setTripMetrics(metrics);
       });
 
       // Calculate direct route metrics for display (Pickup -> Destination)
-      calculateRoute([
+      const p2 = calculateRoute([
         { lat: pickupCoords.lat, lon: pickupCoords.lon },
         { lat: destCoords.lat, lon: destCoords.lon }
       ]).then(metrics => {
         setRouteDistance(metrics.distanceKm);
         setRouteDuration(metrics.durationMin);
-      }).catch(console.error);
+      });
+
+      Promise.all([p1, p2])
+        .catch(console.error)
+        .finally(() => setIsCalculatingRoute(false));
     }
   }, [pickupCoords, destCoords]);
 
@@ -208,13 +215,14 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
       setTripTimes({ start, end });
       
       // 3. Verfügbarkeit prüfen
+      // Großraumfahrt ist NUR wenn explizit 'bus' gewählt wurde oder mehr als 4 Personen
       const isLargeGroup = details.vehicleType === 'bus' || details.passengers >= 5;
       const available = await checkAvailability(details.date, start, end, isLargeGroup, details.hasTrailer);
       
       if (available.length > 0) {
         setAvailableVehicles(available);
         setAssignedVehicleId(available[0].id);
-        setStep(2);
+        setStep(3); // Gehe zu Schritt 3 (Persönliche Daten)
         setShowAvailabilityError(false);
       } else {
         // Alternativen suchen
@@ -222,7 +230,6 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
         const offsets = [-60, -30, 30, 60, 90, 120];
         for (const offset of offsets) {
           const altStart = new Date(start.getTime() + offset * 60000);
-          // Nur Zeiten in der Zukunft und am selben Tag prüfen (vereinfacht)
           if (altStart < new Date()) continue;
           
           const altEnd = new Date(altStart.getTime() + (metrics.durationMin + 30) * 60000);
@@ -237,7 +244,6 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
       }
     } catch (error) {
       console.error('Availability check failed:', error);
-      // alert('Fehler bei der Verfügbarkeitsprüfung.');
     } finally {
       setIsCheckingAvailability(false);
       setProcessingStatus('');
@@ -375,14 +381,20 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
                      destinationCoords={destCoords ? { lat: destCoords.lat, lng: destCoords.lon } : null}
                    />
                    {/* Compact Route Info Overlay */}
-                   {routeDistance && (
-                     <div className="absolute bottom-3 left-3 right-3 bg-white/90 backdrop-blur-md p-3 rounded-2xl shadow-lg border border-white/50 z-20 flex items-center gap-3">
+                   {(routeDistance || isCalculatingRoute) && (
+                     <div className="absolute bottom-3 left-3 right-3 bg-white/90 backdrop-blur-md p-3 rounded-2xl shadow-lg border border-white/50 z-20 flex items-center gap-3 animate-fadeIn">
                         <div className="bg-black w-8 h-8 rounded-xl flex items-center justify-center text-white">
-                            <Navigation size={16} fill="white" />
+                            {isCalculatingRoute ? <Loader2 size={16} className="animate-spin" /> : <Navigation size={16} fill="white" />}
                         </div>
                         <div>
-                            <span className="text-[14px] font-black text-black block leading-none">{(routeDistance || 0).toFixed(1)} km</span>
-                            <span className="text-[9px] font-bold text-secondary uppercase tracking-wider">Ca. {routeDuration} Min.</span>
+                            {isCalculatingRoute ? (
+                              <span className="text-[12px] font-black text-black block leading-none">Berechne Route...</span>
+                            ) : (
+                              <>
+                                <span className="text-[14px] font-black text-black block leading-none">{(routeDistance || 0).toFixed(1)} km</span>
+                                <span className="text-[9px] font-bold text-secondary uppercase tracking-wider">Ca. {routeDuration} Min.</span>
+                              </>
+                            )}
                         </div>
                      </div>
                    )}
@@ -537,7 +549,7 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
                     </button>
                 )}
                 <button 
-                  onClick={step === 1 ? checkRideAvailability : step === 3 ? handleFinalSubmit : () => setStep(s => (s+1) as any)}
+                  onClick={step === 1 ? () => setStep(2) : step === 2 ? checkRideAvailability : step === 3 ? handleFinalSubmit : () => setStep(s => (s+1) as any)}
                   disabled={isProcessing || isCheckingAvailability || (step === 1 && (!details.pickup || !details.destination)) || (step === 3 && (!details.name || !details.phone || !details.email))}
                   className="flex-1 bg-black text-white h-16 rounded-2xl font-black uppercase tracking-widest text-xs disabled:opacity-20 flex items-center justify-center gap-3 shadow-xl hover:bg-dark transition-all transform active:scale-95"
                 >
@@ -567,14 +579,18 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
               <div className="bg-white/95 backdrop-blur-2xl p-6 rounded-[35px] shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/50 min-w-[340px] animate-fadeIn">
                 <div className="flex items-center gap-6">
                     <div className="bg-black w-14 h-14 rounded-[22px] flex items-center justify-center text-white shadow-xl flex-shrink-0">
-                        <Navigation size={28} fill="white" className={routeDistance ? 'animate-pulse' : ''} />
+                        {isCalculatingRoute ? <Loader2 size={28} className="animate-spin" /> : <Navigation size={28} fill="white" className={routeDistance ? 'animate-pulse' : ''} />}
                     </div>
                     <div className="flex-1">
                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 block mb-1">Live Route Info</span>
                         <div className="flex items-baseline gap-2">
-                            <span className="text-3xl font-[900] text-black leading-none">{routeDistance ? `${routeDistance.toFixed(1)} km` : '-- km'}</span>
+                            <span className="text-3xl font-[900] text-black leading-none">
+                              {isCalculatingRoute ? '...' : (routeDistance ? `${routeDistance.toFixed(1)} km` : '-- km')}
+                            </span>
                         </div>
-                        <span className="text-[11px] font-bold text-secondary block mt-1 uppercase tracking-wider">{routeDuration ? `Ca. ${routeDuration} Minuten` : 'Berechne Wegstrecke...'}</span>
+                        <span className="text-[11px] font-bold text-secondary block mt-1 uppercase tracking-wider">
+                          {isCalculatingRoute ? 'Berechne Route...' : (routeDuration ? `Ca. ${routeDuration} Minuten` : 'Warte auf Adressen...')}
+                        </span>
                     </div>
                 </div>
               </div>

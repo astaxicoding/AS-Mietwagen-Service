@@ -39,14 +39,34 @@ export const calculateRoute = async (points: {lat: number, lon: number}[]) => {
 
 /**
  * Berechnet die gesamte Fahrzeit inkl. Anfahrt und Rückfahrt (Home -> Pickup -> Destination -> Home)
+ * Aber die Distanz für den Preis wird nur für Home -> Pickup -> Destination berechnet.
  */
 export const calculateFullTripMetrics = async (pickup: {lat: number, lon: number}, dest: {lat: number, lon: number}) => {
-  // Route: Home -> Pickup -> Destination -> Home
   console.log('Calculating full trip metrics for:', pickup, dest);
-  const points = [HOME_COORDS, pickup, dest, HOME_COORDS];
-  const metrics = await calculateRoute(points);
-  console.log('Full trip metrics calculated:', metrics);
-  return metrics;
+  
+  // Wir berechnen zwei Routen:
+  // 1. Home -> Pickup -> Destination (Das ist die Strecke, die der Kunde bezahlt)
+  // 2. Destination -> Home (Die Rückfahrt, die für die Zeitplanung wichtig ist)
+  
+  try {
+    const [wayThere, wayBack] = await Promise.all([
+      calculateRoute([HOME_COORDS, pickup, dest]),
+      calculateRoute([dest, HOME_COORDS])
+    ]);
+
+    const metrics = {
+      distanceKm: wayThere.distanceKm,
+      durationMin: wayThere.durationMin + wayBack.durationMin
+    };
+    
+    console.log('Full trip metrics calculated:', metrics);
+    return metrics;
+  } catch (error) {
+    console.error('Error in calculateFullTripMetrics:', error);
+    // Fallback falls eine Route fehlschlägt (z.B. Insel ohne Brücke)
+    const points = [HOME_COORDS, pickup, dest, HOME_COORDS];
+    return await calculateRoute(points);
+  }
 };
 
 /**
