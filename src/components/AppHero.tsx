@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'motion/react';
 import Button from '@/components/AppButton';
 import { Phone, Mail, MessageCircle, Calendar } from 'lucide-react';
 import { CONTACT_INFO } from '@/constants';
@@ -27,7 +28,12 @@ const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
         </div>
 
         {/* Main Hero Content Area */}
-        <div className="relative z-10 w-full min-h-[75vh] md:min-h-[85vh] flex flex-col items-center justify-center pt-32 pb-20 px-6 text-center text-white">
+        <motion.div 
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="relative z-10 w-full min-h-[75vh] md:min-h-[85vh] flex flex-col items-center justify-center pt-32 pb-20 px-6 text-center text-white"
+        >
           <h2 className="text-secondary font-bold text-xs md:text-sm tracking-[0.3em] uppercase mb-6 md:mb-8">
             Ihr Taxi Service
           </h2>
@@ -62,7 +68,7 @@ const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
               </Button>
             </Link>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Contact & Booking Options Area - On Light Gray Background */}

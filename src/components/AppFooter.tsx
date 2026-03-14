@@ -41,7 +41,13 @@ const Footer: React.FC<FooterProps> = ({ onOpenImpressum, onOpenDatenschutz }) =
               <div className="bg-white/10 p-5 rounded-full mb-4 border border-white/20">
                 <Clock size={32} />
               </div>
-              <span className="font-bold text-lg uppercase tracking-widest">24/7 erreichbar</span>
+              <span className="font-bold text-lg uppercase tracking-widest">Öffnungszeiten</span>
+              <div className="text-sm font-light mt-2 text-center">
+                <p>Mo-Do: 06:00 - 20:00 Uhr</p>
+                <p>Fr-Sa: 24 Stunden</p>
+                <p>So: Ruhetag</p>
+                <p className="text-xs mt-2 italic">Außerhalb: Vorbestellung</p>
+              </div>
             </div>
 
             <div className="flex flex-col items-center">

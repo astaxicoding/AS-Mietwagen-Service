@@ -7,9 +7,10 @@ import Logo from '@/components/AppLogo';
 
 interface HeaderProps {
   onOpenBooking?: () => void;
+  onOpenTaxiCare?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onOpenBooking }) => {
+const Header: React.FC<HeaderProps> = ({ onOpenBooking, onOpenTaxiCare }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
@@ -75,6 +76,12 @@ const Header: React.FC<HeaderProps> = ({ onOpenBooking }) => {
         {/* Desktop Nav */}
         <div className="flex items-center">
             <nav className="hidden lg:flex space-x-6 items-center">
+            <button 
+                onClick={onOpenTaxiCare}
+                className="font-bold text-[12px] uppercase tracking-[0.1em] text-white hover:text-secondary transition-colors py-2"
+            >
+                TaxiCare
+            </button>
             {NAV_ITEMS.map((item) => (
                 <Link 
                 key={item.label} 

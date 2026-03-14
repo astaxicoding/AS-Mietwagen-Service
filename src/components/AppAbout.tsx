@@ -27,9 +27,10 @@ const About: React.FC = () => {
           <div className="w-full lg:w-1/2">
             <div className="relative rounded shadow-2xl overflow-hidden group max-w-md mx-auto lg:mx-0">
               <img 
-                src="https://as-mietwagen-service.de/wp-content/uploads/2022/12/d7x6h-g-e6i-1280x1920.jpg" 
-                alt="Fahrgast steigt ein" 
+                src="https://i.ibb.co/3m71vkyr/IMG-1201.jpg" 
+                alt="IMG-1201" 
                 className="w-full h-auto object-cover transform transition-transform duration-700 group-hover:scale-105"
+                referrerPolicy="no-referrer"
               />
               <div className="absolute inset-0 border-[15px] border-white/20 pointer-events-none"></div>
             </div>

@@ -44,6 +44,16 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
   const [pickupCoords, setPickupCoords] = useState<{lat: number, lon: number} | null>(null);
   const [destCoords, setDestCoords] = useState<{lat: number, lon: number} | null>(null);
 
+  useEffect(() => {
+    if (pickupCoords && destCoords) {
+      calculateFullTripMetrics(pickupCoords, destCoords).then(metrics => {
+        setTripMetrics(metrics);
+        setRouteDistance(metrics.distanceKm);
+        setRouteDuration(metrics.durationMin);
+      });
+    }
+  }, [pickupCoords, destCoords]);
+
   const [details, setDetails] = useState<BookingDetails>({
     pickup: '',
     destination: '',
@@ -160,9 +170,11 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
   };
 
   const getPrice = (service: BookingServiceOption) => {
-    if (!routeDistance) return '---';
+    if (!tripMetrics) return '---';
     
-    let total = service.basePrice + (routeDistance * service.pricePerKm);
+    // Total distance = distanceHomeToPickup + routeDistance
+    // calculateFullTripMetrics already calculates Home -> Pickup -> Destination
+    let total = 3.70 + (tripMetrics.distanceKm * 2.50);
     
     // Großraum surcharge (always 5.90€ for bus service)
     if (service.id === 'bus' || assignedVehicleId?.startsWith('bus')) {
@@ -357,8 +369,8 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
                 <div className="md:hidden h-[200px] rounded-[25px] overflow-hidden relative shadow-inner border border-gray-100">
                    <LiveMap 
                      key={isOpen ? 'map-mobile-active' : 'map-mobile-inactive'}
-                     pickupCoords={pickupCoords}
-                     destinationCoords={destCoords}
+                     pickupCoords={pickupCoords ? { lat: pickupCoords.lat, lng: pickupCoords.lon } : null}
+                     destinationCoords={destCoords ? { lat: destCoords.lat, lng: destCoords.lon } : null}
                      onRouteCalculated={(dist, dur) => {setRouteDistance(dist); setRouteDuration(dur);}}
                    />
                    {/* Compact Route Info Overlay */}
@@ -545,8 +557,8 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
         <div className="hidden md:flex flex-1 bg-[#f0f2f5] relative overflow-hidden h-full">
            <LiveMap 
              key={isOpen ? 'map-desktop-active' : 'map-desktop-inactive'}
-             pickupCoords={pickupCoords}
-             destinationCoords={destCoords}
+             pickupCoords={pickupCoords ? { lat: pickupCoords.lat, lng: pickupCoords.lon } : null}
+             destinationCoords={destCoords ? { lat: destCoords.lat, lng: destCoords.lon } : null}
              onRouteCalculated={(dist, dur) => {setRouteDistance(dist); setRouteDuration(dur);}}
            />
            

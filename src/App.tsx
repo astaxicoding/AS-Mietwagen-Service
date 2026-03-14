@@ -13,6 +13,8 @@ import LeistungenPage from '@/components/AppLeistungenPage';
 import LegalImpressum from '@/components/LegalImpressum';
 import LegalDatenschutz from '@/components/LegalDatenschutz';
 import PromoPopup from '@/components/AppPromoPopup';
+import TaxiCarePopup from '@/components/AppTaxiCarePopup';
+import Preloader from '@/components/AppPreloader';
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -35,7 +37,15 @@ export default function App() {
   const [isImpressumOpen, setIsImpressumOpen] = useState(false);
   const [isDatenschutzOpen, setIsDatenschutzOpen] = useState(false);
   const [isPromoOpen, setIsPromoOpen] = useState(false);
+  const [isTaxiCareOpen, setIsTaxiCareOpen] = useState(false);
   const [preselectedType, setPreselectedType] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsTaxiCareOpen(true);
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const openBooking = (type?: string) => {
     setPreselectedType(type || null);
@@ -44,11 +54,12 @@ export default function App() {
 
   return (
     <Router>
+      <Preloader />
       <ScrollToTop />
       <Routes>
         <Route path="/" element={
           <div className="min-h-screen">
-            <Header onOpenBooking={() => openBooking()} />
+            <Header onOpenBooking={() => openBooking()} onOpenTaxiCare={() => setIsTaxiCareOpen(true)} />
             <Hero onOpenBooking={() => openBooking()} />
             <About />
             <Services />
@@ -89,6 +100,10 @@ export default function App() {
       <PromoPopup 
         isOpen={isPromoOpen} 
         onClose={() => setIsPromoOpen(false)} 
+      />
+      <TaxiCarePopup 
+        isOpen={isTaxiCareOpen} 
+        onClose={() => setIsTaxiCareOpen(false)} 
       />
     </Router>
   );
