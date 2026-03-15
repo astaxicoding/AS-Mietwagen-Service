@@ -44,7 +44,7 @@ const Impressum: React.FC<ImpressumProps> = ({ isOpen, onClose }) => {
             <p className="text-lg font-bold text-black leading-tight">
               Telefon: 06721-681 08 08<br />
               Telefax: 06721-201 6381<br />
-              E-Mail: info@as-mietwagen-service.de
+              E-Mail: Info@as-mietwagen-service.de
             </p>
           </section>
 

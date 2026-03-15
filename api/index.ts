@@ -30,7 +30,7 @@ app.post("/api/send-email", async (req, res) => {
   const { to, bcc, subject, html, text } = req.body;
   try {
     const info = await transporter.sendMail({
-      from: process.env.SMTP_FROM || "info@as-taxi-mietwagen.de",
+      from: process.env.SMTP_FROM || "Info@as-mietwagen-service.de",
       to: Array.isArray(to) ? to.join(", ") : to,
       bcc: bcc ? (Array.isArray(bcc) ? bcc.join(", ") : bcc) : undefined,
       subject,

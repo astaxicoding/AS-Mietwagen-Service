@@ -18,7 +18,7 @@ export const CONTACT_INFO = {
   location: 'Zentrale am Stadtbahnhof',
   address: 'Espenschiedstr 1',
   city: '55411 Bingen am Rhein',
-  email: 'info@as-taxi-mietwagen.de',
+  email: 'Info@as-mietwagen-service.de',
   whatsapp: '0172 2804437',
 };
 
