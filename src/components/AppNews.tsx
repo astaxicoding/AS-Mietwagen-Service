@@ -79,7 +79,7 @@ const News: React.FC<NewsProps> = ({ isAdmin }) => {
       <div className="container mx-auto px-6">
         <div className="text-center mb-16 relative">
           <h2 className="text-secondary font-bold text-xs tracking-[0.3em] uppercase mb-4">Neuigkeiten</h2>
-          <h3 className="text-4xl font-black text-black mb-4 tracking-tighter">Aktuelles von AS Mietwagen</h3>
+          <h3 className="text-4xl font-black text-black mb-4 tracking-tighter">Aktuelles von AS TAXI UND MIETWAGEN SERVICE</h3>
           <div className="w-16 h-1 bg-black mx-auto"></div>
           
           {isAdmin && (

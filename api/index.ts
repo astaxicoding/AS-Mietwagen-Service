@@ -1,15 +1,22 @@
 import express from "express";
-import path from "path";
-import { fileURLToPath } from "url";
 import dotenv from "dotenv";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+// SMTP Configuration
+const transporter = process.env.SMTP_HOST ? nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: parseInt(process.env.SMTP_PORT || "587"),
+  secure: process.env.SMTP_SECURE === "true",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+}) : null;
 
 // API Routes
 app.get("/api/health", (req, res) => {
@@ -17,22 +24,22 @@ app.get("/api/health", (req, res) => {
 });
 
 app.post("/api/send-email", async (req, res) => {
-  if (!resend) {
+  if (!transporter) {
     return res.status(500).json({ success: false, message: "Email service not configured" });
   }
   const { to, bcc, subject, html, text } = req.body;
   try {
-    const { data, error } = await resend.emails.send({
-      from: "AS Taxi Service <onboarding@resend.dev>",
-      to: Array.isArray(to) ? to : [to],
-      bcc: bcc ? (Array.isArray(bcc) ? bcc : [bcc]) : undefined,
+    const info = await transporter.sendMail({
+      from: process.env.SMTP_FROM || "info@as-taxi-mietwagen.de",
+      to: Array.isArray(to) ? to.join(", ") : to,
+      bcc: bcc ? (Array.isArray(bcc) ? bcc.join(", ") : bcc) : undefined,
       subject,
       html,
       text
     });
-    if (error) return res.status(400).json({ success: false, error });
-    res.json({ success: true, data });
+    res.json({ success: true, data: info });
   } catch (err: any) {
+    console.error("Email Error:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 });

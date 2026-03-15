@@ -16,7 +16,7 @@ const Logo: React.FC<LogoProps> = ({ className = "h-12", variant = 'light', src 
       <div className={className}>
         <img 
           src={finalSrc} 
-          alt="AS Mietwagen Service Logo" 
+          alt="AS TAXI UND MIETWAGEN SERVICE Logo" 
           className="h-full w-auto object-contain"
           style={{ 
             imageRendering: 'auto'

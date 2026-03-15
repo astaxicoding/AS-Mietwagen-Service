@@ -36,6 +36,9 @@ export const sendBookingEmailToOwner = async (booking: BookingDetails, distance:
     });
 
     const data = await response.json();
+    if (!data.success) {
+      console.error("Email API Error (Owner):", data);
+    }
     return data.success;
   } catch (error) {
     console.error("Fehler beim Senden der E-Mail an Inhaber:", error);
@@ -77,6 +80,9 @@ export const sendBookingEmailToCustomer = async (booking: BookingDetails): Promi
     });
 
     const data = await response.json();
+    if (!data.success) {
+      console.error("Email API Error (Customer):", data);
+    }
     return data.success;
   } catch (error) {
     console.error("Fehler beim Senden der E-Mail an Kunden:", error);
@@ -118,6 +124,9 @@ export const sendCancellationEmailToCustomer = async (
     });
 
     const data = await response.json();
+    if (!data.success) {
+      console.error("Email API Error (Customer Cancellation):", data);
+    }
     return data.success;
   } catch (error) {
     console.error("Fehler beim Senden der Stornierungs-E-Mail an Kunden:", error);
@@ -153,6 +162,9 @@ export const sendCancellationEmailToOwner = async (
     });
 
     const data = await response.json();
+    if (!data.success) {
+      console.error("Email API Error (Owner Cancellation):", data);
+    }
     return data.success;
   } catch (error) {
     console.error("Fehler beim Senden der Stornierungs-E-Mail an Inhaber:", error);
