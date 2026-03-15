@@ -14,12 +14,12 @@ export const NAV_ITEMS: NavItem[] = [
 
 export const CONTACT_INFO = {
   phone: '06721 984 84 82',
-  mobile: '0172 2804437',
+  mobile: '+49 172 2804437',
   location: 'Zentrale am Stadtbahnhof',
   address: 'Espenschiedstr 1',
   city: '55411 Bingen am Rhein',
   email: 'Info@as-mietwagen-service.de',
-  whatsapp: '0172 2804437',
+  whatsapp: '+49 172 2804437',
 };
 
 export const LOGO_URL = "https://image2url.com/r2/default/images/1772004831119-52dfe8cc-8b8b-47d2-b5c2-77a5e5587538.png";
