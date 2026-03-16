@@ -26,16 +26,28 @@ export const LOGO_URL = "https://image2url.com/r2/default/images/1772004831119-5
 
 export const SERVICES: ServiceItem[] = [
   {
-    id: 'kurier',
+    id: 'shopping',
+    title: 'Einkaufsfahrten',
+    description: 'Hilfe bei Besorgungen',
+    icon: ShoppingBag
+  },
+  {
+    id: 'airport',
+    title: 'Flughafentransfer',
+    description: 'Bingen ↔ Region',
+    icon: Plane
+  },
+  {
+    id: 'courier',
     title: 'Kurierfahrten',
     description: 'Schnell & sicher',
     icon: FileText
   },
   {
-    id: 'shopping',
-    title: 'Einkaufsfahrten',
-    description: 'Hilfe bei Besorgungen',
-    icon: ShoppingBag
+    id: 'medical',
+    title: 'Krankenfahrten',
+    description: 'Sitzend zum Arzt',
+    icon: Heart
   },
   {
     id: 'school',
@@ -44,15 +56,15 @@ export const SERVICES: ServiceItem[] = [
     icon: GraduationCap
   },
   {
-    id: 'medicare',
-    title: 'Krankenfahrten',
-    description: 'Sitzend zum Arzt',
-    icon: Stethoscope
+    id: 'bus',
+    title: 'Großraumbus',
+    description: 'Bis zu 8 Personen',
+    icon: Users
   },
   {
-    id: 'airport',
-    title: 'Flughafentransfer',
-    description: 'Bingen ↔ Region',
-    icon: Plane
+    id: 'taxicare',
+    title: 'TaxiCare Service',
+    description: 'Starthilfe & mehr',
+    icon: Stethoscope
   }
 ];

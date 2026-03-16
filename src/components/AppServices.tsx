@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { SERVICES } from '@/constants';
 
 const Services: React.FC = () => {
@@ -32,12 +33,12 @@ const Services: React.FC = () => {
                   {service.title}
                 </h4>
                 <div className="mt-auto pt-6 w-full">
-                  <a 
-                    href={service.id === 'medicare' ? '/medicare' : `/leistungen#${service.id}`} 
+                  <Link 
+                    to={`/leistungen#${service.id}`} 
                     className="block w-full border-2 border-black text-black text-[11px] font-bold uppercase px-6 py-3 hover:bg-black hover:text-white transition-colors rounded-sm tracking-widest text-center"
                   >
                     Mehr Erfahren
-                  </a>
+                  </Link>
                 </div>
               </div>
             );

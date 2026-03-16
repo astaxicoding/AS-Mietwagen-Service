@@ -1,27 +1,39 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Lock, LogOut, Settings, MessageSquare, Newspaper, ShieldCheck, Calendar as CalendarIcon, ArrowLeft, Loader2, User, Key } from 'lucide-react';
-import { auth, signOut, db, doc, onSnapshot, setDoc, signInAnonymously } from '@/firebase';
+import { Lock, LogOut, Settings, MessageSquare, Newspaper, ShieldCheck, Calendar as CalendarIcon, ArrowLeft, Loader2, User, Key, BarChart3 } from 'lucide-react';
+import { auth, signOut, db, doc, onSnapshot, setDoc, signInAnonymously, onAuthStateChanged } from '@/firebase';
 import Guestbook from '@/components/AppGuestbook';
 import News from '@/components/AppNews';
 import AdminCalendar from '@/components/AppAdminCalendar';
+import AdminAnalytics from '@/components/AppAdminAnalytics';
 import Button from '@/components/AppButton';
 import Logo from '@/components/AppLogo';
 
 const AdminPanel: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isAuthReady, setIsAuthReady] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'news' | 'guestbook' | 'stats' | 'calendar'>('calendar');
+  const [activeTab, setActiveTab] = useState<'news' | 'guestbook' | 'stats' | 'calendar' | 'analytics'>('calendar');
   const [googleStats, setGoogleStats] = useState({ rating: 4.9, count: 255 });
   const [isUpdatingStats, setIsUpdatingStats] = useState(false);
 
   useEffect(() => {
+    // Track Firebase Auth state
+    const unsubscribeAuth = onAuthStateChanged(auth, (firebaseUser) => {
+      setIsAuthReady(true);
+      if (firebaseUser) {
+        console.log('Firebase Auth: User is authenticated', firebaseUser.uid);
+      } else {
+        console.log('Firebase Auth: User is not authenticated');
+      }
+    });
+
     // Check for existing session
     const restoreSession = async () => {
       const safetyTimer = setTimeout(() => {
@@ -34,8 +46,10 @@ const AdminPanel: React.FC = () => {
           setIsAdmin(true);
           setUser({ email: 'admin@as-taxi.de', displayName: 'AS.TAXI' });
           
-          // Background auth
-          signInAnonymously(auth).catch(err => console.error('Background auth failed:', err));
+          // Background auth - wait for it if possible or let onAuthStateChanged handle it
+          if (!auth.currentUser) {
+            await signInAnonymously(auth).catch(err => console.error('Background auth failed:', err));
+          }
         }
       } catch (err) {
         console.error('Session restoration failed:', err);
@@ -57,6 +71,7 @@ const AdminPanel: React.FC = () => {
     });
 
     return () => {
+      unsubscribeAuth();
       statsUnsubscribe();
     };
   }, []);
@@ -98,9 +113,12 @@ const AdminPanel: React.FC = () => {
         setUser({ email: 'admin@as-taxi.de', displayName: 'AS.TAXI' });
         
         // Background auth to Firebase so we can use Firestore
-        signInAnonymously(auth).catch(authErr => {
+        try {
+          await signInAnonymously(auth);
+          console.log('Firebase Auth Success (Background)');
+        } catch (authErr) {
           console.error('Firebase Auth Error (Background):', authErr);
-        });
+        }
       }
     } catch (err: any) {
       console.error('Login error:', err);
@@ -249,31 +267,37 @@ const AdminPanel: React.FC = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-6 py-12">
-        <div className="flex flex-col md:flex-row gap-12">
+      <main className="container mx-auto px-4 md:px-6 py-6 md:py-12">
+        <div className="flex flex-col md:flex-row gap-6 md:gap-12">
           {/* Sidebar */}
           <aside className="w-full md:w-64 space-y-2">
             <button 
               onClick={() => setActiveTab('calendar')}
-              className={`w-full flex items-center gap-4 p-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'calendar' ? 'bg-black text-white shadow-xl' : 'bg-white text-gray-400 hover:bg-gray-50'}`}
+              className={`w-full flex items-center gap-4 p-4 md:p-5 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all ${activeTab === 'calendar' ? 'bg-black text-white shadow-xl' : 'bg-white text-gray-400 hover:bg-gray-50'}`}
             >
               <CalendarIcon size={18} /> Kalender
             </button>
             <button 
               onClick={() => setActiveTab('news')}
-              className={`w-full flex items-center gap-4 p-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'news' ? 'bg-black text-white shadow-xl' : 'bg-white text-gray-400 hover:bg-gray-50'}`}
+              className={`w-full flex items-center gap-4 p-4 md:p-5 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all ${activeTab === 'news' ? 'bg-black text-white shadow-xl' : 'bg-white text-gray-400 hover:bg-gray-50'}`}
             >
               <Newspaper size={18} /> Neuigkeiten
             </button>
             <button 
               onClick={() => setActiveTab('guestbook')}
-              className={`w-full flex items-center gap-4 p-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'guestbook' ? 'bg-black text-white shadow-xl' : 'bg-white text-gray-400 hover:bg-gray-50'}`}
+              className={`w-full flex items-center gap-4 p-4 md:p-5 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all ${activeTab === 'guestbook' ? 'bg-black text-white shadow-xl' : 'bg-white text-gray-400 hover:bg-gray-50'}`}
             >
               <MessageSquare size={18} /> Gästebuch
             </button>
             <button 
+              onClick={() => setActiveTab('analytics')}
+              className={`w-full flex items-center gap-4 p-4 md:p-5 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all ${activeTab === 'analytics' ? 'bg-black text-white shadow-xl' : 'bg-white text-gray-400 hover:bg-gray-50'}`}
+            >
+              <BarChart3 size={18} /> Analyse
+            </button>
+            <button 
               onClick={() => setActiveTab('stats')}
-              className={`w-full flex items-center gap-4 p-5 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'stats' ? 'bg-black text-white shadow-xl' : 'bg-white text-gray-400 hover:bg-gray-50'}`}
+              className={`w-full flex items-center gap-4 p-4 md:p-5 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[9px] md:text-[10px] transition-all ${activeTab === 'stats' ? 'bg-black text-white shadow-xl' : 'bg-white text-gray-400 hover:bg-gray-50'}`}
             >
               <Settings size={18} /> Google Stats
             </button>
@@ -281,44 +305,54 @@ const AdminPanel: React.FC = () => {
 
           {/* Content Area */}
           <div className="flex-1">
-            <div className="bg-white rounded-[40px] shadow-sm border border-gray-100 overflow-hidden">
-              {activeTab === 'calendar' && <AdminCalendar />}
-              {activeTab === 'news' && <News isAdmin={true} />}
-              {activeTab === 'guestbook' && <Guestbook isAdmin={true} />}
-              {activeTab === 'stats' && (
-                <div className="p-10">
-                  <h3 className="text-2xl font-black tracking-tighter mb-8">Google Statistiken</h3>
-                  <form onSubmit={handleUpdateStats} className="space-y-6 max-w-md">
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-2">Google Bewertung (Sterne)</label>
-                        <input 
-                          type="number" 
-                          step="0.1"
-                          min="0"
-                          max="5"
-                          className="w-full bg-gray-50 rounded-2xl p-5 font-bold outline-none border border-gray-100 focus:border-secondary transition-colors"
-                          value={googleStats.rating}
-                          onChange={(e) => setGoogleStats({...googleStats, rating: parseFloat(e.target.value)})}
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-2">Anzahl der Bewertungen</label>
-                        <input 
-                          type="number" 
-                          className="w-full bg-gray-50 rounded-2xl p-5 font-bold outline-none border border-gray-100 focus:border-secondary transition-colors"
-                          value={googleStats.count}
-                          onChange={(e) => setGoogleStats({...googleStats, count: parseInt(e.target.value)})}
-                          required
-                        />
-                      </div>
-                    </div>
-                    <Button type="submit" disabled={isUpdatingStats} className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl">
-                      {isUpdatingStats ? 'Wird gespeichert...' : 'Statistiken speichern'}
-                    </Button>
-                  </form>
+            <div className="bg-white rounded-[30px] md:rounded-[40px] shadow-sm border border-gray-100 overflow-hidden">
+              {!isAuthReady ? (
+                <div className="p-10 md:p-20 flex flex-col items-center justify-center gap-4">
+                  <Loader2 className="animate-spin text-secondary" size={32} />
+                  <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Verbindung zur Datenbank wird hergestellt...</p>
                 </div>
+              ) : (
+                <>
+                  {activeTab === 'calendar' && <AdminCalendar />}
+                  {activeTab === 'news' && <News isAdmin={true} />}
+                  {activeTab === 'guestbook' && <Guestbook isAdmin={true} />}
+                  {activeTab === 'analytics' && <AdminAnalytics />}
+                  {activeTab === 'stats' && (
+                    <div className="p-6 md:p-10">
+                      <h3 className="text-xl md:text-2xl font-black tracking-tighter mb-6 md:mb-8">Google Statistiken</h3>
+                      <form onSubmit={handleUpdateStats} className="space-y-6 max-w-md">
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-2">Google Bewertung (Sterne)</label>
+                            <input 
+                              type="number" 
+                              step="0.1"
+                              min="0"
+                              max="5"
+                              className="w-full bg-gray-50 rounded-xl md:rounded-2xl p-4 md:p-5 font-bold outline-none border border-gray-100 focus:border-secondary transition-colors text-sm"
+                              value={googleStats.rating}
+                              onChange={(e) => setGoogleStats({...googleStats, rating: parseFloat(e.target.value)})}
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[9px] md:text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 ml-2">Anzahl der Bewertungen</label>
+                            <input 
+                              type="number" 
+                              className="w-full bg-gray-50 rounded-xl md:rounded-2xl p-4 md:p-5 font-bold outline-none border border-gray-100 focus:border-secondary transition-colors text-sm"
+                              value={googleStats.count}
+                              onChange={(e) => setGoogleStats({...googleStats, count: parseInt(e.target.value)})}
+                              required
+                            />
+                          </div>
+                        </div>
+                        <Button type="submit" disabled={isUpdatingStats} className="w-full bg-black text-white py-4 md:py-5 rounded-xl md:rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-xs shadow-xl">
+                          {isUpdatingStats ? 'Wird gespeichert...' : 'Statistiken speichern'}
+                        </Button>
+                      </form>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>

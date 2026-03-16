@@ -10,6 +10,7 @@ interface LeistungenPageProps {
   onOpenBooking: (type?: string) => void;
   onOpenImpressum: () => void;
   onOpenDatenschutz: () => void;
+  onOpenTaxiCare?: () => void;
 }
 
 const LEISTUNGEN_DATA = [
@@ -139,7 +140,7 @@ const LEISTUNGEN_DATA = [
   }
 ];
 
-const LeistungenPage: React.FC<LeistungenPageProps> = ({ onOpenBooking, onOpenImpressum, onOpenDatenschutz }) => {
+const LeistungenPage: React.FC<LeistungenPageProps> = ({ onOpenBooking, onOpenImpressum, onOpenDatenschutz, onOpenTaxiCare }) => {
   const { hash } = useLocation();
 
   useEffect(() => {
@@ -184,7 +185,7 @@ const LeistungenPage: React.FC<LeistungenPageProps> = ({ onOpenBooking, onOpenIm
                     <h2 className="text-2xl font-black text-black uppercase tracking-tight mb-4">{service.title}</h2>
                     <p className="text-gray-500 text-sm leading-relaxed mb-8">{service.description}</p>
                     <Button 
-                      onClick={() => service.id === 'taxicare' ? window.location.href = '/taxicare' : onOpenBooking(service.id)}
+                      onClick={() => service.id === 'taxicare' ? (onOpenTaxiCare ? onOpenTaxiCare() : null) : onOpenBooking(service.id)}
                       className="mt-auto w-full bg-secondary hover:bg-[#d17a1a] text-white font-black uppercase tracking-widest text-[10px] py-4"
                     >
                       {service.id === 'taxicare' ? 'Mehr Infos' : 'Jetzt Buchen'}

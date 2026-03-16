@@ -39,6 +39,9 @@ const AdminCalendar: React.FC = () => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Booking));
       setBookings(data);
       setLoading(false);
+    }, (error) => {
+      console.error('Calendar onSnapshot error:', error);
+      setLoading(false);
     });
     return () => unsubscribe();
   }, []);

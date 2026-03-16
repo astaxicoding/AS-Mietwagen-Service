@@ -81,6 +81,7 @@ export default function App() {
             onOpenBooking={(type) => openBooking(type)} 
             onOpenImpressum={() => setIsImpressumOpen(true)} 
             onOpenDatenschutz={() => setIsDatenschutzOpen(true)} 
+            onOpenTaxiCare={() => setIsTaxiCareOpen(true)}
           />
         } />
         <Route path="/admin" element={<AdminPanel />} />
