@@ -1,29 +1,67 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'motion/react';
 import Button from '@/components/AppButton';
 import { Phone, Mail, MessageCircle, Calendar } from 'lucide-react';
 import { CONTACT_INFO } from '@/constants';
+import { storage, ref, getDownloadURL } from '@/firebase';
 
 interface HeroProps {
     onOpenBooking?: () => void;
 }
 
 const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
+  const [imageUrl, setImageUrl] = useState<string>("https://firebasestorage.googleapis.com/v0/b/gen-lang-client-0235162444.firebasestorage.app/o/IMG_1259.jpeg?alt=media");
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    const fetchImageUrl = async () => {
+      // Wir probieren absolut jede gängige Schreibweise aus
+      const fileNames = [
+        'IMG_1259.jpeg', 'IMG_1259.jpg', 'IMG_1259.JPG', 'IMG_1259.JPEG',
+        'img_1259.jpeg', 'img_1259.jpg', 'img_1259.JPG', 'img_1259.JPEG'
+      ];
+      
+      for (const name of fileNames) {
+        try {
+          const storageRef = ref(storage, name);
+          const url = await getDownloadURL(storageRef);
+          setImageUrl(url);
+          setHasError(false);
+          console.log("Bild erfolgreich geladen:", name);
+          return;
+        } catch (error) {
+          // Falls nicht gefunden, probieren wir den nächsten Namen
+        }
+      }
+      
+      // Wenn gar nichts geht, setzen wir den Fehler-Status für das Ersatzbild
+      console.error("Bild IMG_1259 konnte in keiner Variante im Storage gefunden werden.");
+      setHasError(true);
+    };
+
+    fetchImageUrl();
+  }, []);
+
   return (
     <section id="home" className="relative overflow-visible">
       {/* Hero Section with Background */}
       <div className="relative w-full flex flex-col items-center">
         {/* Background Image - Covers only the hero content part */}
-        <div className="absolute top-0 left-0 w-full h-full z-0">
+        <div className="absolute top-0 left-0 w-full h-full z-0 bg-gray-900">
           <img 
-            src="https://as-mietwagen-service.de/wp-content/uploads/2022/12/1op1rp1rena.jpg" 
-            alt="Car Interior Dashboard" 
+            src={hasError ? "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=1920&auto=format&fit=crop" : imageUrl} 
+            alt="AS Taxi Hero" 
             className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+            onError={() => {
+              console.warn("Hero image failed to load, using fallback.");
+              setHasError(true);
+            }}
           />
           {/* Dark Vignette Overlay */}
-          <div className="absolute inset-0 bg-black/50"></div>
+          <div className="absolute inset-0 bg-black/40"></div>
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80"></div>
         </div>
 

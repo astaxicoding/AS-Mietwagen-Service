@@ -15,6 +15,7 @@ import LegalDatenschutz from '@/components/LegalDatenschutz';
 import PromoPopup from '@/components/AppPromoPopup';
 import TaxiCarePopup from '@/components/AppTaxiCarePopup';
 import Preloader from '@/components/AppPreloader';
+import { auth, signInAnonymously } from '@/firebase';
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -43,6 +44,9 @@ export default function App() {
   const [preselectedType, setPreselectedType] = useState<string | null>(null);
 
   useEffect(() => {
+    // Sign in anonymously to allow access to Firebase Storage if rules require it
+    signInAnonymously(auth).catch(err => console.error("Anonymous sign-in failed:", err));
+
     if (hasShownTaxiCare) return;
 
     const timer = setTimeout(() => {

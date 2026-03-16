@@ -10,13 +10,28 @@ app.use(express.json());
 // SMTP Configuration
 const transporter = process.env.SMTP_HOST ? nodemailer.createTransport({
   host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || "587"),
-  secure: process.env.SMTP_SECURE === "true",
+  port: parseInt(process.env.SMTP_PORT || "465"),
+  secure: process.env.SMTP_SECURE === "true" || process.env.SMTP_PORT === "465",
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  tls: {
+    // Strato specific: sometimes helpful to allow self-signed or specific ciphers
+    rejectUnauthorized: false
+  }
 }) : null;
+
+// Verify transporter on startup
+if (transporter) {
+  transporter.verify((error, success) => {
+    if (error) {
+      console.error("SMTP Connection Error:", error);
+    } else {
+      console.log("SMTP Server is ready to take our messages");
+    }
+  });
+}
 
 // API Routes
 app.get("/api/health", (req, res) => {

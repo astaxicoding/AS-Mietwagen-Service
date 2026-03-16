@@ -138,7 +138,6 @@ const Footer: React.FC<FooterProps> = ({ onOpenImpressum, onOpenDatenschutz }) =
           </div>
           <div className="text-[9px] uppercase tracking-widest text-gray-800 relative">
             Replicated with precision
-            <Link to="/admin" className="absolute -top-8 right-0 p-6 text-[8px] opacity-5 hover:opacity-100 transition-opacity">Admin</Link>
           </div>
         </div>
       </div>
