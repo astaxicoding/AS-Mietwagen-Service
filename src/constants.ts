@@ -5,10 +5,10 @@ import { NavItem, ServiceItem } from '@/types';
 export const NAV_ITEMS: NavItem[] = [
   { label: 'HOME', href: '/' },
   { label: 'LEISTUNGEN', href: '/leistungen' },
-  { label: 'ÜBER UNS', href: '#about' },
-  { label: 'NEWS', href: '#news' },
-  { label: 'GÄSTEBUCH', href: '#guestbook' },
-  { label: 'KONTAKT', href: '#contact' },
+  { label: 'ÜBER UNS', href: '/#about' },
+  { label: 'NEWS', href: '/#news' },
+  { label: 'GÄSTEBUCH', href: '/#guestbook' },
+  { label: 'KONTAKT', href: '/#contact' },
   { label: 'JETZT BUCHEN', href: '#' },
 ];
 

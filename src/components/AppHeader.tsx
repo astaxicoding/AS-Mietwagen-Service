@@ -123,6 +123,15 @@ const Header: React.FC<HeaderProps> = ({ onOpenBooking, onOpenTaxiCare }) => {
       {isMobileMenuOpen && (
         <div className="lg:hidden absolute top-full left-0 w-full bg-black border-t border-gray-900 shadow-2xl h-screen overflow-y-auto">
           <div className="flex flex-col py-2">
+            <button 
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                if (onOpenTaxiCare) onOpenTaxiCare();
+              }}
+              className="px-8 py-4 text-white text-left hover:text-secondary hover:bg-gray-900 font-bold uppercase tracking-wider border-b border-gray-800 transition-colors text-sm"
+            >
+              TaxiCare
+            </button>
             {NAV_ITEMS.map((item) => (
               <Link 
                 key={item.label}

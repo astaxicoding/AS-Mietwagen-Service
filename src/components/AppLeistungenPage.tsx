@@ -156,7 +156,7 @@ const LeistungenPage: React.FC<LeistungenPageProps> = ({ onOpenBooking, onOpenIm
 
   return (
     <div className="min-h-screen bg-white font-sans">
-      <Header onOpenBooking={onOpenBooking} />
+      <Header onOpenBooking={onOpenBooking} onOpenTaxiCare={onOpenTaxiCare} />
       
       <main className="pt-32 pb-24">
         {/* Hero Section */}

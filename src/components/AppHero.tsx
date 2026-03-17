@@ -12,36 +12,7 @@ interface HeroProps {
 }
 
 const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
-  const [imageUrl, setImageUrl] = useState<string>("/hero-taxi.png");
-  const [hasError, setHasError] = useState(false);
-
-  useEffect(() => {
-    const fetchImageUrl = async () => {
-      // Wir probieren zuerst die lokale Datei, dann Storage
-      const fileNames = [
-        'hero-taxi.png', 'hero-taxi.jpg', 'hero-taxi.jpeg', 'IMG_1259.jpeg'
-      ];
-      
-      for (const name of fileNames) {
-        try {
-          const storageRef = ref(storage, name);
-          const url = await getDownloadURL(storageRef);
-          setImageUrl(url);
-          setHasError(false);
-          console.log("Bild erfolgreich geladen:", name);
-          return;
-        } catch (error) {
-          // Falls nicht gefunden, probieren wir den nächsten Namen
-        }
-      }
-      
-      // Wenn gar nichts geht, setzen wir den Fehler-Status für das Ersatzbild
-      console.error("Bild IMG_1259 konnte in keiner Variante im Storage gefunden werden.");
-      setHasError(true);
-    };
-
-    fetchImageUrl();
-  }, []);
+  const [imageUrl] = useState<string>("/hero-taxi.png");
 
   return (
     <section id="home" className="relative overflow-visible">
@@ -50,14 +21,10 @@ const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
         {/* Background Image - Covers only the hero content part */}
         <div className="absolute top-0 left-0 w-full h-full z-0 bg-gray-900">
           <img 
-            src={hasError ? "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=1920&auto=format&fit=crop" : imageUrl} 
+            src={imageUrl} 
             alt="AS Taxi Hero" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
-            onError={() => {
-              console.warn("Hero image failed to load, using fallback.");
-              setHasError(true);
-            }}
           />
           {/* Dark Vignette Overlay */}
           <div className="absolute inset-0 bg-black/40"></div>
