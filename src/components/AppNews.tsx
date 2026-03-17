@@ -63,6 +63,7 @@ const News: React.FC<NewsProps> = ({ isAdmin }) => {
     e.preventDefault();
     if (!editingPost) return;
 
+    setIsSubmitting(true);
     try {
       await updateDoc(doc(db, 'news', editingPost.id), { 
         title: editingPost.title, 
@@ -71,6 +72,8 @@ const News: React.FC<NewsProps> = ({ isAdmin }) => {
       setEditingPost(null);
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, 'news');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -206,7 +209,13 @@ const News: React.FC<NewsProps> = ({ isAdmin }) => {
                 onChange={(e) => setEditingPost({...editingPost, content: e.target.value})}
                 required
               />
-              <Button type="submit" className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs">Änderungen speichern</Button>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full bg-black text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? <><Loader2 className="animate-spin" size={18} /> Wird gespeichert...</> : 'Änderungen speichern'}
+              </Button>
             </form>
           </div>
         </div>

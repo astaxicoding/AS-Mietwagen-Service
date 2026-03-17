@@ -68,20 +68,20 @@ service cloud.firestore {
     }
 
     function isValidReview(data) {
-      return data.keys().hasAll(['name', 'message', 'rating', 'date', 'source']) &&
+      return data.keys().hasAll(['name', 'message', 'rating', 'source']) &&
              data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
              data.message is string && data.message.size() > 0 && data.message.size() < 2000 &&
              data.rating is number && data.rating >= 1 && data.rating <= 5 &&
-             data.date is string &&
-             data.source in ['local', 'google'];
+             data.source in ['local', 'google'] &&
+             (!('date' in data) || data.date is string);
     }
 
     function isValidNews(data) {
-      return data.keys().hasAll(['title', 'content', 'date', 'image']) &&
+      return data.keys().hasAll(['title', 'content', 'date']) &&
              data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
              data.content is string && data.content.size() > 0 && data.content.size() < 10000 &&
              data.date is string &&
-             data.image is string;
+             (!('image' in data) || data.image is string);
     }
 
     function isValidSettings(data) {

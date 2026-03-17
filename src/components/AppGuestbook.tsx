@@ -80,6 +80,7 @@ const Guestbook: React.FC<GuestbookProps> = ({ isAdmin }) => {
     e.preventDefault();
     if (!editingReview) return;
 
+    setIsSubmitting(true);
     try {
       await updateDoc(doc(db, 'reviews', editingReview.id), { 
         name: editingReview.name, 
@@ -90,6 +91,8 @@ const Guestbook: React.FC<GuestbookProps> = ({ isAdmin }) => {
       setEditingReview(null);
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, 'reviews');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -285,7 +288,13 @@ const Guestbook: React.FC<GuestbookProps> = ({ isAdmin }) => {
                 value={editingReview.message}
                 onChange={(e) => setEditingReview({...editingReview, message: e.target.value})}
               />
-              <Button type="submit" className="w-full bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs">Änderungen speichern</Button>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full bg-black text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? <><Loader2 className="animate-spin" size={16} /> Wird gespeichert...</> : 'Änderungen speichern'}
+              </Button>
             </form>
           </div>
         </div>
