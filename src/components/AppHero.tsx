@@ -12,7 +12,38 @@ interface HeroProps {
 }
 
 const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
-  const [imageUrl] = useState<string>("/hero-taxi.png");
+  // Hochwertiges Fallback-Bild von Unsplash (Taxi-Thema)
+  const fallbackUrl = "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=1920&auto=format&fit=crop";
+  
+  // Wir starten mit dem lokalen Pfad, versuchen aber sofort Firebase Storage
+  const [imageUrl, setImageUrl] = useState<string>("/hero-taxi.png");
+  const [isFallback, setIsFallback] = useState(false);
+
+  useEffect(() => {
+    const fetchImageUrl = async () => {
+      console.log("Versuche Bild aus Firebase Storage zu laden...");
+      const fileNames = ['hero-taxi.png', 'hero-taxi.jpg', 'hero-taxi.jpeg', 'IMG_1259.jpeg', 'IMG_1259.JPG'];
+      
+      for (const name of fileNames) {
+        try {
+          const storageRef = ref(storage, name);
+          const url = await getDownloadURL(storageRef);
+          setImageUrl(url);
+          console.log("Bild erfolgreich aus Firebase Storage geladen:", name);
+          return;
+        } catch (error) {
+          // Nächster Name
+        }
+      }
+      
+      // Wenn wir hier ankommen, wurde im Storage nichts gefunden.
+      // Wir lassen imageUrl auf "/hero-taxi.png" - falls die Datei lokal existiert.
+      // Wenn sie lokal auch fehlt, greift der onError Handler.
+      console.log("Kein Bild im Storage gefunden, warte auf lokales Bild oder Fallback.");
+    };
+
+    fetchImageUrl();
+  }, []);
 
   return (
     <section id="home" className="relative overflow-visible">
@@ -25,6 +56,14 @@ const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
             alt="AS Taxi Hero" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
+            onError={() => {
+              // Falls das Bild (egal ob lokal oder Storage) nicht lädt, Fallback nutzen
+              if (!isFallback) {
+                console.log("Bild konnte nicht geladen werden, nutze Fallback-URL.");
+                setImageUrl(fallbackUrl);
+                setIsFallback(true);
+              }
+            }}
           />
           {/* Dark Vignette Overlay */}
           <div className="absolute inset-0 bg-black/40"></div>
