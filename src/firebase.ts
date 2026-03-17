@@ -9,7 +9,10 @@ import firebaseConfig from '../firebase-applet-config.json';
 
 // Initialize Firebase SDK
 const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+// Use default database if ID is "(default)" or missing
+export const db = firebaseConfig.firestoreDatabaseId && firebaseConfig.firestoreDatabaseId !== '(default)' 
+  ? getFirestore(app, firebaseConfig.firestoreDatabaseId) 
+  : getFirestore(app);
 export const auth = getAuth();
 export const storage = getStorage(app);
 
@@ -67,3 +70,24 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
   console.error('Firestore Error: ', JSON.stringify(errInfo));
   throw new Error(JSON.stringify(errInfo));
 }
+
+// Connection test
+async function testConnection() {
+  try {
+    // Try to fetch from a test path to verify connectivity
+    await getDocFromServer(doc(db, 'test', 'connection'));
+    console.log("Firestore connection successful");
+  } catch (error: any) {
+    if (error.message?.includes('the client is offline')) {
+      console.error("Firebase Error: The client is offline. This usually means:");
+      console.error("1. The Firestore database has not been created in the Firebase Console.");
+      console.error("2. The Project ID or Database ID in firebase-applet-config.json is incorrect.");
+      console.error("Current Project ID:", firebaseConfig.projectId);
+      console.error("Current Database ID:", firebaseConfig.firestoreDatabaseId);
+    } else {
+      // Other errors (like permission denied) mean the connection is actually working but rules block it
+      console.log("Firestore reachability test completed (Result: " + error.message + ")");
+    }
+  }
+}
+testConnection();

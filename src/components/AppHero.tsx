@@ -12,15 +12,14 @@ interface HeroProps {
 }
 
 const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
-  const [imageUrl, setImageUrl] = useState<string>("https://firebasestorage.googleapis.com/v0/b/gen-lang-client-0235162444.firebasestorage.app/o/IMG_1259.jpeg?alt=media");
+  const [imageUrl, setImageUrl] = useState<string>("/hero-taxi.png");
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     const fetchImageUrl = async () => {
-      // Wir probieren absolut jede gängige Schreibweise aus
+      // Wir probieren zuerst die lokale Datei, dann Storage
       const fileNames = [
-        'IMG_1259.jpeg', 'IMG_1259.jpg', 'IMG_1259.JPG', 'IMG_1259.JPEG',
-        'img_1259.jpeg', 'img_1259.jpg', 'img_1259.JPG', 'img_1259.JPEG'
+        'hero-taxi.png', 'hero-taxi.jpg', 'hero-taxi.jpeg', 'IMG_1259.jpeg'
       ];
       
       for (const name of fileNames) {
