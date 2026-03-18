@@ -40,17 +40,22 @@ export const calculateRoute = async (points: {lat: number, lon: number}[]) => {
 /**
  * Berechnet die gesamte Fahrzeit inkl. Anfahrt und Rückfahrt (Home -> Pickup -> Destination -> Home)
  * Aber die Distanz für den Preis wird nur für Home -> Pickup -> Destination berechnet.
+ * Wenn Zielort Bingen ist, wird die Anfahrt (Home -> Pickup) nicht berechnet.
  */
-export const calculateFullTripMetrics = async (pickup: {lat: number, lon: number}, dest: {lat: number, lon: number}) => {
-  console.log('Calculating full trip metrics for:', pickup, dest);
+export const calculateFullTripMetrics = async (pickup: {lat: number, lon: number}, dest: {lat: number, lon: number}, isDestBingen: boolean = false) => {
+  console.log('Calculating full trip metrics for:', pickup, dest, 'isDestBingen:', isDestBingen);
   
   // Wir berechnen zwei Routen:
-  // 1. Home -> Pickup -> Destination (Das ist die Strecke, die der Kunde bezahlt)
+  // 1. Die Strecke, die der Kunde bezahlt:
+  //    - Normal: Home -> Pickup -> Destination
+  //    - Wenn Ziel Bingen: Nur Pickup -> Destination (Anfahrt geschenkt)
   // 2. Destination -> Home (Die Rückfahrt, die für die Zeitplanung wichtig ist)
   
   try {
+    const wayTherePoints = isDestBingen ? [pickup, dest] : [HOME_COORDS, pickup, dest];
+    
     const [wayThere, wayBack] = await Promise.all([
-      calculateRoute([HOME_COORDS, pickup, dest]),
+      calculateRoute(wayTherePoints),
       calculateRoute([dest, HOME_COORDS])
     ]);
 
@@ -63,8 +68,8 @@ export const calculateFullTripMetrics = async (pickup: {lat: number, lon: number
     return metrics;
   } catch (error) {
     console.error('Error in calculateFullTripMetrics:', error);
-    // Fallback falls eine Route fehlschlägt (z.B. Insel ohne Brücke)
-    const points = [HOME_COORDS, pickup, dest, HOME_COORDS];
+    // Fallback falls eine Route fehlschlägt
+    const points = isDestBingen ? [pickup, dest, HOME_COORDS] : [HOME_COORDS, pickup, dest, HOME_COORDS];
     return await calculateRoute(points);
   }
 };

@@ -50,7 +50,8 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
       setIsCalculatingRoute(true);
       
       // Calculate full trip metrics for pricing (Home -> Pickup -> Destination)
-      const p1 = calculateFullTripMetrics(pickupCoords, destCoords).then(metrics => {
+      const isDestBingen = details.destination.toLowerCase().includes('bingen');
+      const p1 = calculateFullTripMetrics(pickupCoords, destCoords, isDestBingen).then(metrics => {
         setTripMetrics(metrics);
       });
 
@@ -206,7 +207,8 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
     
     try {
       // 1. Route berechnen (Home -> Pickup -> Destination -> Home)
-      const metrics = await calculateFullTripMetrics(pickupCoords, destCoords);
+      const isDestBingen = details.destination.toLowerCase().includes('bingen');
+      const metrics = await calculateFullTripMetrics(pickupCoords, destCoords, isDestBingen);
       setTripMetrics(metrics);
       
       // 2. Zeitfenster berechnen (inkl. 30 Min Puffer)
