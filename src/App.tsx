@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import Header from '@/components/AppHeader';
 import Hero from '@/components/AppHero';
 import About from '@/components/AppAbout';
@@ -118,6 +119,7 @@ export default function App() {
         isOpen={isTaxiCareOpen} 
         onClose={() => setIsTaxiCareOpen(false)} 
       />
+      <Analytics />
     </Router>
   );
 }
