@@ -89,6 +89,12 @@ service cloud.firestore {
       return data.keys().size() > 0;
     }
 
+    function isValidVisit(data) {
+      return data.keys().hasAll(['path', 'timestamp']) &&
+             data.path is string && data.path.size() > 0 && data.path.size() < 1000 &&
+             data.timestamp is string && data.timestamp.size() > 0 && data.timestamp.size() < 100;
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -134,6 +140,17 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
       allow write: if isAdmin();
+    }
+
+    match /visits/{visitId} {
+      // Anyone can create a visit record (public tracking)
+      allow create: if isValidVisit(request.resource.data);
+      
+      // Only admins can read or delete visit records
+      allow read, delete: if isAdmin();
+      
+      // Visits are immutable
+      allow update: if false;
     }
   }
 }

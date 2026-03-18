@@ -323,8 +323,9 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
                         />
                         {details.pickup && (
                           <button 
+                            type="button"
                             onClick={() => { updateField('pickup', ''); setPickupCoords(null); }}
-                            className="absolute right-0 p-1 text-gray-400 hover:text-black transition-colors"
+                            className="absolute right-2 p-1 text-gray-400 hover:text-black transition-colors"
                           >
                             <X size={16} />
                           </button>
@@ -343,8 +344,9 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
                         />
                         {details.destination && (
                           <button 
+                            type="button"
                             onClick={() => { updateField('destination', ''); setDestCoords(null); }}
-                            className="absolute right-0 p-1 text-gray-400 hover:text-black transition-colors"
+                            className="absolute right-2 p-1 text-gray-400 hover:text-black transition-colors"
                           >
                             <X size={16} />
                           </button>

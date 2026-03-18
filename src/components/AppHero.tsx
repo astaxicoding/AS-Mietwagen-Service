@@ -20,7 +20,7 @@ const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
     const fetchImageUrl = async () => {
       console.log("Versuche Bild aus Firebase Storage zu laden...");
       // BUCHEN.png hat Priorität
-      const fileNames = ['BUCHEN.png', 'hero-taxi.png', 'hero-taxi.jpg', 'hero-taxi.jpeg', 'IMG_1259.jpeg', 'IMG_1259.JPG'];
+      const fileNames = ['BUCHEN.png', 'hero-taxi.jpg', 'hero-taxi.jpeg', 'IMG_1259.jpeg', 'IMG_1259.JPG'];
       
       for (const name of fileNames) {
         try {
@@ -35,9 +35,7 @@ const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
       }
       
       // Wenn wir hier ankommen, wurde im Storage nichts gefunden.
-      // Wir versuchen das lokale Bild als letzten Ausweg, falls es kein "blaues Auto" ist.
-      setImageUrl("/hero-taxi.png");
-      console.log("Kein Bild im Storage gefunden, versuche lokales Bild.");
+      console.log("Kein Bild im Storage gefunden.");
     };
 
     fetchImageUrl();

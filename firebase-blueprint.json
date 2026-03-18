@@ -89,6 +89,18 @@
         "googleReviewRating": { "type": "number" },
         "googleReviewCount": { "type": "number" }
       }
+    },
+    "Visit": {
+      "title": "Visit",
+      "description": "A record of a page visit",
+      "type": "object",
+      "properties": {
+        "path": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "userAgent": { "type": "string" },
+        "referrer": { "type": "string" }
+      },
+      "required": ["path", "timestamp"]
     }
   },
   "firestore": {
@@ -111,6 +123,10 @@
     "/settings": {
       "schema": "Settings",
       "description": "Global settings like Google stats"
+    },
+    "/visits": {
+      "schema": "Visit",
+      "description": "Collection of page visits for internal analytics"
     }
   }
 }

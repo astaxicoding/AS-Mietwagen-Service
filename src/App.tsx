@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import Header from '@/components/AppHeader';
 import Hero from '@/components/AppHero';
 import About from '@/components/AppAbout';
@@ -16,6 +16,9 @@ import PromoPopup from '@/components/AppPromoPopup';
 import TaxiCarePopup from '@/components/AppTaxiCarePopup';
 import Preloader from '@/components/AppPreloader';
 import { auth, signInAnonymously } from '@/firebase';
+import { Analytics } from '@vercel/analytics/react';
+import { SpeedInsights } from '@vercel/speed-insights/react';
+import { useTracking } from '@/hooks/useTracking';
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -46,6 +49,8 @@ export default function App() {
   const [isTaxiCareOpen, setIsTaxiCareOpen] = useState(false);
   const [preselectedType, setPreselectedType] = useState<string | null>(null);
 
+  useTracking();
+
   useEffect(() => {
     // Sign in anonymously to allow access to Firebase Storage if rules require it
     signInAnonymously(auth).catch(err => console.error("Anonymous sign-in failed:", err));
@@ -65,7 +70,9 @@ export default function App() {
   };
 
   return (
-    <Router>
+    <>
+      <Analytics />
+      <SpeedInsights />
       <Preloader />
       <ScrollToTop />
       <Routes>
@@ -118,6 +125,6 @@ export default function App() {
         isOpen={isTaxiCareOpen} 
         onClose={() => setIsTaxiCareOpen(false)} 
       />
-    </Router>
+    </>
   );
 }
