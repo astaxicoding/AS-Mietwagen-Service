@@ -16,6 +16,7 @@ interface BookingOverlayProps {
 }
 
 const SERVICE_OPTIONS: BookingServiceOption[] = [
+  { id: 'standard', name: 'Normale Fahrt', description: 'Standard Personenbeförderung', basePrice: 3.70, pricePerKm: 2.50, icon: Navigation, capacity: 4, eta: 5 },
   { id: 'shopping', name: 'Einkaufsfahrten', description: 'Hilfe bei Besorgungen', basePrice: 3.70, pricePerKm: 2.50, icon: ShoppingBag, capacity: 4, eta: 5 },
   { id: 'airport', name: 'Flughafentransfer', description: 'Bingen ↔ Region', basePrice: 3.70, pricePerKm: 2.50, icon: Plane, capacity: 4, eta: 15 },
   { id: 'courier', name: 'Kurierfahrten', description: 'Pakete & Dokumente', basePrice: 3.70, pricePerKm: 2.50, icon: Package, capacity: 0, eta: 8 },
@@ -74,7 +75,7 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
     destination: '',
     date: new Date().toISOString().split('T')[0],
     time: new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }),
-    vehicleType: 'shopping',
+    vehicleType: 'standard',
     passengers: 1,
     name: '',
     phone: '',
@@ -448,17 +449,17 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
                   <div 
                     key={service.id} 
                     onClick={() => updateField('vehicleType', service.id)}
-                    className={`p-5 rounded-[30px] border-2 cursor-pointer transition-all ${details.vehicleType === service.id ? 'border-secondary bg-orange-50/30' : 'border-gray-50 bg-white hover:border-gray-100 shadow-sm'}`}
+                    className={`p-4 md:p-5 rounded-[25px] md:rounded-[30px] border-2 cursor-pointer transition-all ${details.vehicleType === service.id ? 'border-secondary bg-orange-50/30' : 'border-gray-50 bg-white hover:border-gray-100 shadow-sm'}`}
                   >
-                    <div className="flex items-center gap-5">
-                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-colors ${details.vehicleType === service.id ? 'bg-secondary text-white shadow-lg' : 'bg-gray-50 text-gray-400'}`}>
-                        <service.icon size={28} />
+                    <div className="flex items-center gap-3 md:gap-5">
+                      <div className={`w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl flex items-center justify-center transition-colors ${details.vehicleType === service.id ? 'bg-secondary text-white shadow-lg' : 'bg-gray-50 text-gray-400'}`}>
+                        <service.icon size={20} className="md:w-7 md:h-7" />
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-black text-black text-base">{service.name}</h3>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-black text-black text-sm md:text-base truncate">{service.name}</h3>
                       </div>
-                      <div className="text-right">
-                        <div className="text-xl font-[900] text-black">{getPrice(service).total} €</div>
+                      <div className="text-right flex-shrink-0">
+                        <div className="text-lg md:text-xl font-[900] text-black whitespace-nowrap">{getPrice(service).total} €</div>
                       </div>
                     </div>
                   </div>
