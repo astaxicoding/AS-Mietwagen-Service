@@ -36,7 +36,7 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
   const [availableVehicles, setAvailableVehicles] = useState<any[]>([]);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [assignedVehicleId, setAssignedVehicleId] = useState<string | null>(null);
-  const [tripMetrics, setTripMetrics] = useState<{distanceKm: number, durationMin: number} | null>(null);
+  const [tripMetrics, setTripMetrics] = useState<{arrivalDistanceKm: number, rideDistanceKm: number, durationMin: number} | null>(null);
   const [tripTimes, setTripTimes] = useState<{start: Date, end: Date} | null>(null);
   const [alternativeTimes, setAlternativeTimes] = useState<string[]>([]);
   const [showAvailabilityError, setShowAvailabilityError] = useState(false);
@@ -50,8 +50,7 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
       setIsCalculatingRoute(true);
       
       // Calculate full trip metrics for pricing (Home -> Pickup -> Destination)
-      const isDestBingen = details.destination.toLowerCase().includes('bingen');
-      const p1 = calculateFullTripMetrics(pickupCoords, destCoords, isDestBingen).then(metrics => {
+      const p1 = calculateFullTripMetrics(pickupCoords, destCoords).then(metrics => {
         setTripMetrics(metrics);
       });
 
@@ -141,7 +140,7 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
     
     try {
       const selectedService = SERVICE_OPTIONS.find(s => s.id === details.vehicleType)!;
-      const priceStr = getPrice(selectedService).replace(',', '.');
+      const priceStr = getPrice(selectedService).total.replace(',', '.');
       const price = parseFloat(priceStr) || 0;
 
       const finalDetails = { ...details, price };
@@ -160,7 +159,7 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
         finalDetails,
         pickupCoords,
         destCoords,
-        tripMetrics.distanceKm,
+        tripMetrics.rideDistanceKm,
         tripMetrics.durationMin,
         assignedVehicleId,
         tripTimes.start,
@@ -186,17 +185,21 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
   };
 
   const getPrice = (service: BookingServiceOption) => {
-    if (!tripMetrics) return '---';
+    if (!tripMetrics) return { total: '---', breakdown: null };
     
     const isLargeGroup = service.id === 'bus' || assignedVehicleId?.startsWith('bus');
-    let total = calculatePrice(tripMetrics.distanceKm, isLargeGroup);
+    const result = calculatePrice(tripMetrics.rideDistanceKm, tripMetrics.arrivalDistanceKm, isLargeGroup);
 
+    let total = result.total;
     // Trailer surcharge
     if (details.vehicleType === 'bus' && details.hasTrailer) {
       total += 15.00;
     }
     
-    return (total || 0).toFixed(2).replace('.', ',');
+    return {
+      total: (total || 0).toFixed(2).replace('.', ','),
+      breakdown: result.breakdown
+    };
   };
 
   const checkRideAvailability = async () => {
@@ -207,8 +210,9 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
     
     try {
       // 1. Route berechnen (Home -> Pickup -> Destination -> Home)
-      const isDestBingen = details.destination.toLowerCase().includes('bingen');
-      const metrics = await calculateFullTripMetrics(pickupCoords, destCoords, isDestBingen);
+      // Die neue Logik in calculateFullTripMetrics entscheidet nun selbstständig,
+      // ob die Zielstrecke berechnet wird (basierend auf "Zwischendrin"-Check).
+      const metrics = await calculateFullTripMetrics(pickupCoords, destCoords);
       setTripMetrics(metrics);
       
       // 2. Zeitfenster berechnen (inkl. 30 Min Puffer)
@@ -452,18 +456,17 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
                       </div>
                       <div className="flex-1">
                         <h3 className="font-black text-black text-base">{service.name}</h3>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase">{service.pricePerKm}€ / km</p>
                       </div>
                       <div className="text-right">
-                        <div className="text-xl font-[900] text-black">{getPrice(service)} €</div>
+                        <div className="text-xl font-[900] text-black">{getPrice(service).total} €</div>
                       </div>
                     </div>
                   </div>
                 ))}
 
                 {/* Additional Options */}
-                <div className="bg-gray-50 p-6 rounded-[30px] space-y-6 mt-6">
-                  {details.vehicleType === 'bus' && (
+                {details.vehicleType === 'bus' && (
+                  <div className="bg-gray-50 p-6 rounded-[30px] space-y-6 mt-6">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-black text-black">Personenanzahl</span>
@@ -511,28 +514,69 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
                         </div>
                       </div>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
               </div>
             )}
 
             {step === 3 && (
               <div className="space-y-6 animate-fadeIn">
-                <input type="text" placeholder="Vor- und Zuname" className="w-full bg-gray-50 rounded-2xl p-5 font-bold outline-none border border-gray-100 focus:border-secondary transition-colors" value={details.name} onChange={e => updateField('name', e.target.value)}/>
-                <input type="email" placeholder="E-Mail Adresse" className="w-full bg-gray-50 rounded-2xl p-5 font-bold outline-none border border-gray-100 focus:border-secondary transition-colors" value={details.email} onChange={e => updateField('email', e.target.value)}/>
-                <input type="tel" placeholder="Telefonnummer" className="w-full bg-gray-50 rounded-2xl p-5 font-bold outline-none border border-gray-100 focus:border-secondary transition-colors" value={details.phone} onChange={e => updateField('phone', e.target.value)}/>
-                <div className="bg-black text-white p-8 rounded-[35px] shadow-2xl relative overflow-hidden">
+                <div className="grid grid-cols-1 gap-4">
+                  <input type="text" placeholder="Vor- und Zuname" className="w-full bg-gray-50 rounded-2xl p-5 font-bold outline-none border border-gray-100 focus:border-secondary transition-colors" value={details.name} onChange={e => updateField('name', e.target.value)}/>
+                  <input type="email" placeholder="E-Mail Adresse" className="w-full bg-gray-50 rounded-2xl p-5 font-bold outline-none border border-gray-100 focus:border-secondary transition-colors" value={details.email} onChange={e => updateField('email', e.target.value)}/>
+                  <input type="tel" placeholder="Telefonnummer" className="w-full bg-gray-50 rounded-2xl p-5 font-bold outline-none border border-gray-100 focus:border-secondary transition-colors" value={details.phone} onChange={e => updateField('phone', e.target.value)}/>
+                </div>
+
+                <div className="bg-black text-white p-6 md:p-8 rounded-[35px] shadow-2xl relative overflow-hidden">
                     <div className="absolute top-0 right-0 p-4 opacity-10">
                         <ShieldCheck size={100} />
                     </div>
                     <div className="relative z-10">
                         <div className="flex justify-between items-center mb-4">
-                            <span className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Geschätzter Gesamtbetrag</span>
+                            <span className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Preisaufschlüsselung</span>
                             <ShieldCheck size={16} className="text-secondary" />
                         </div>
-                        <div className="text-5xl font-[900]">
+                        
+                        {/* Detailed Breakdown */}
+                        <div className="space-y-2 mb-6 border-b border-white/10 pb-6">
+                          {(() => {
+                            const priceInfo = getPrice(SERVICE_OPTIONS.find(s => s.id === details.vehicleType)!);
+                            const b = priceInfo.breakdown;
+                            if (!b) return null;
+                            return (
+                              <>
+                                <div className="flex justify-between text-[11px] font-bold">
+                                  <span className="text-gray-400 uppercase tracking-wider">Grundgebühr:</span>
+                                  <span>{b.baseFee.toFixed(2).replace('.', ',')} €</span>
+                                </div>
+                                <div className="flex justify-between text-[11px] font-bold">
+                                  <span className="text-gray-400 uppercase tracking-wider">Fahrt ({b.rideDistanceKm.toFixed(1)} km):</span>
+                                  <span>{b.ridePrice.toFixed(2).replace('.', ',')} €</span>
+                                </div>
+                                <div className="flex justify-between text-[11px] font-bold">
+                                  <span className="text-gray-400 uppercase tracking-wider">Anfahrt ({b.arrivalDistanceKm.toFixed(1)} km):</span>
+                                  <span>{b.arrivalFee > 0 ? `${b.arrivalFee.toFixed(2).replace('.', ',')} €` : '0,00 € (Inklusive)'}</span>
+                                </div>
+                                {b.largeGroupFee > 0 && (
+                                  <div className="flex justify-between text-[11px] font-bold">
+                                    <span className="text-gray-400 uppercase tracking-wider">Großraumzuschlag:</span>
+                                    <span>{b.largeGroupFee.toFixed(2).replace('.', ',')} €</span>
+                                  </div>
+                                )}
+                                {details.hasTrailer && (
+                                  <div className="flex justify-between text-[11px] font-bold">
+                                    <span className="text-gray-400 uppercase tracking-wider">Anhängerzuschlag:</span>
+                                    <span>15,00 €</span>
+                                  </div>
+                                )}
+                              </>
+                            );
+                          })()}
+                        </div>
+
+                        <div className="text-4xl md:text-5xl font-[900]">
                             <span className="text-xl mr-2">ca.</span>
-                            {getPrice(SERVICE_OPTIONS.find(s => s.id === details.vehicleType)!)} <span className="text-xl text-secondary">€</span>
+                            {getPrice(SERVICE_OPTIONS.find(s => s.id === details.vehicleType)!).total} <span className="text-xl text-secondary">€</span>
                         </div>
                         <div className="mt-6 pt-6 border-t border-white/10 space-y-3">
                           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">

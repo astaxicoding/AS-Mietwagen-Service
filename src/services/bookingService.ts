@@ -38,62 +38,90 @@ export const calculateRoute = async (points: {lat: number, lon: number}[]) => {
 };
 
 /**
- * Berechnet die gesamte Fahrzeit inkl. Anfahrt und Rückfahrt (Home -> Pickup -> Destination -> Home)
- * Aber die Distanz für den Preis wird nur für Home -> Pickup -> Destination berechnet.
- * Wenn Zielort Bingen ist, wird die Anfahrt (Home -> Pickup) nicht berechnet.
+ * Berechnet die Metriken für die Fahrt.
+ * Gibt die Anfahrt (Home -> Pickup) und die eigentliche Fahrt (Pickup -> Destination) separat zurück.
  */
-export const calculateFullTripMetrics = async (pickup: {lat: number, lon: number}, dest: {lat: number, lon: number}, isDestBingen: boolean = false) => {
-  console.log('Calculating full trip metrics for:', pickup, dest, 'isDestBingen:', isDestBingen);
-  
-  // Wir berechnen zwei Routen:
-  // 1. Die Strecke, die der Kunde bezahlt:
-  //    - Normal: Home -> Pickup -> Destination
-  //    - Wenn Ziel Bingen: Nur Pickup -> Destination (Anfahrt geschenkt)
-  // 2. Destination -> Home (Die Rückfahrt, die für die Zeitplanung wichtig ist)
+export const calculateFullTripMetrics = async (pickup: {lat: number, lon: number}, dest: {lat: number, lon: number}) => {
+  console.log('Calculating full trip metrics for:', pickup, dest);
   
   try {
-    const wayTherePoints = isDestBingen ? [pickup, dest] : [HOME_COORDS, pickup, dest];
-    
-    const [wayThere, wayBack] = await Promise.all([
-      calculateRoute(wayTherePoints),
+    const [routeHomeToPickup, routePickupToDest, routeDestToHome] = await Promise.all([
+      calculateRoute([HOME_COORDS, pickup]),
+      calculateRoute([pickup, dest]),
       calculateRoute([dest, HOME_COORDS])
     ]);
 
     const metrics = {
-      distanceKm: wayThere.distanceKm,
-      durationMin: wayThere.durationMin + wayBack.durationMin
+      arrivalDistanceKm: routeHomeToPickup.distanceKm,
+      rideDistanceKm: routePickupToDest.distanceKm,
+      durationMin: routeHomeToPickup.durationMin + routePickupToDest.durationMin + routeDestToHome.durationMin
     };
     
     console.log('Full trip metrics calculated:', metrics);
     return metrics;
   } catch (error) {
     console.error('Error in calculateFullTripMetrics:', error);
-    // Fallback falls eine Route fehlschlägt
-    const points = isDestBingen ? [pickup, dest, HOME_COORDS] : [HOME_COORDS, pickup, dest, HOME_COORDS];
-    return await calculateRoute(points);
+    // Fallback
+    const route = await calculateRoute([HOME_COORDS, pickup, dest, HOME_COORDS]);
+    return {
+      arrivalDistanceKm: 0,
+      rideDistanceKm: route.distanceKm,
+      durationMin: route.durationMin
+    };
   }
 };
 
 /**
- * Berechnet den Preis der Fahrt
- * Bingen am Rhein Espenschiedstr 1 -> Abholadresse -> Zielort
+ * Berechnet den Preis der Fahrt basierend auf der neuen Logik:
+ * Grundrechnung: (Abholort -> Zielort) * 2,50€ + 3,70€ Grundgebühr
+ * + Anfahrtspauschale:
+ * - <= 5 km: 0€
+ * - 5-10 km: +2€
+ * - 10-20 km: +4€
+ * - > 20 km: (Anfahrt * 1,25€)
  * 
- * PKW: (Distanz * 2,50€) + 3,70€ Grundgebühr
- * Bus: (Distanz * 2,50€) + 3,70€ Grundgebühr + 5,90€ Großraumzuschlag
+ * RUNDUNG: Kilometerbasierte Beträge werden auf 10 Cent gerundet.
  */
-export const calculatePrice = (distanceKm: number, isLargeGroup: boolean) => {
-  const baseFee = 3.70; // Grundgebühr ist immer 3,70€
-  const perKm = 2.50;   // Kilometerpreis ist immer 2,50€
+export const calculatePrice = (rideDistanceKm: number, arrivalDistanceKm: number, isLargeGroup: boolean) => {
+  const baseFee = 3.70;
+  const perKmRate = 2.50;
+  const arrivalRateLong = 1.25;
   
-  // Grundpreis + (Distanz * Preis pro km)
-  let price = baseFee + (distanceKm * perKm);
+  // Hilfsfunktion zum Runden auf 10 Cent
+  const roundTo10Cent = (val: number) => Math.ceil(val * 10) / 10;
+
+  // 1. Fahrtpreis (Kilometerbasiert)
+  const rawRidePrice = rideDistanceKm * perKmRate;
+  const ridePrice = roundTo10Cent(rawRidePrice);
   
-  // Großraumzuschlag für Busse
-  if (isLargeGroup) {
-    price += 5.90;
+  // 2. Anfahrtspauschale
+  let arrivalFee = 0;
+  if (arrivalDistanceKm <= 5) {
+    arrivalFee = 0;
+  } else if (arrivalDistanceKm <= 10) {
+    arrivalFee = 2.00;
+  } else if (arrivalDistanceKm <= 20) {
+    arrivalFee = 4.00;
+  } else {
+    arrivalFee = roundTo10Cent(arrivalDistanceKm * arrivalRateLong);
   }
   
-  return Math.round(price * 100) / 100;
+  // 3. Großraumzuschlag
+  const largeGroupFee = isLargeGroup ? 5.90 : 0;
+  
+  const total = baseFee + ridePrice + arrivalFee + largeGroupFee;
+  
+  return {
+    total: Math.round(total * 100) / 100,
+    breakdown: {
+      baseFee,
+      ridePrice,
+      arrivalFee,
+      largeGroupFee,
+      rideDistanceKm,
+      arrivalDistanceKm
+    }
+  };
 };
 
 /**

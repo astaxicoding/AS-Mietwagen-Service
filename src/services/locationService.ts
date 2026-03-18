@@ -47,26 +47,34 @@ const formatNominatimData = (data: any[], userInput: string) => {
     }
 
     // Stadt / Ortsteil / Gemeinde hinzufügen
-    // Wir nehmen mehr Details auf, um Verwechslungen (z.B. Bingerbrück vs Weiler) zu vermeiden
     const city = addr.city || addr.town || addr.village || addr.hamlet || "";
-    const suburb = addr.suburb || "";
+    const suburb = addr.suburb || addr.neighbourhood || addr.district || "";
     const municipality = addr.municipality || "";
     
-    let locationInfo = "";
-    if (suburb) {
-      locationInfo = suburb;
-    } else if (city) {
-      locationInfo = city;
-    } else if (municipality) {
-      locationInfo = municipality;
+    let locationName = "";
+    const isBingen = (city + municipality + addr.county).toLowerCase().includes("bingen");
+
+    if (isBingen) {
+      locationName = "Bingen";
+      // Wenn es ein spezieller Ortsteil ist (außer dem Zentrum), fügen wir ihn hinzu
+      if (suburb && !["bingen", "innenstadt", "zentrum", "altstadt"].includes(suburb.toLowerCase())) {
+        // Spezialfall: Fruchtmarkt ist Zentrum, Nominatim ordnet es manchmal falsch zu
+        if (street.toLowerCase().includes("fruchtmarkt")) {
+          // Bleibt bei "Bingen"
+        } else {
+          locationName += `-${suburb}`;
+        }
+      }
+    } else {
+      locationName = suburb || city || municipality || firstPart;
     }
 
-    if (locationInfo && !label.includes(locationInfo)) {
-      label += `, ${locationInfo}`;
+    if (locationName && !label.includes(locationName)) {
+      label += `, ${locationName}`;
     }
     
-    // Falls es immer noch nicht eindeutig ist, hängen wir den Postleitzahl-Bereich an
-    if (addr.postcode) {
+    // Postleitzahl zur Eindeutigkeit (hilft bei Stromberger Str. in Weiler vs Bingerbrück)
+    if (addr.postcode && !label.includes(addr.postcode)) {
       label += ` (${addr.postcode})`;
     }
 
