@@ -131,10 +131,6 @@ const LEISTUNGEN_DATA = [
       {
         title: 'TaxiCare-Service',
         text: 'Unterstützung bei technischen Problemen und Koordination von Hilfeleistungen rund um Ihre Mobilität.'
-      },
-      {
-        title: '24/7 Notfall-Hotline',
-        text: 'Unser Service ist rund um die Uhr für Sie erreichbar. Ein Anruf genügt.'
       }
     ]
   }
