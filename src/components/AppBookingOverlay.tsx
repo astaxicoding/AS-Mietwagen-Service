@@ -313,23 +313,43 @@ const BookingOverlay: React.FC<BookingOverlayProps> = ({ isOpen, onClose, presel
                     
                     <div className="relative mb-4 md:mb-8">
                       <label className="text-[8px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Abholung</label>
-                      <input 
-                        className="w-full bg-transparent outline-none font-extrabold text-base md:text-lg text-black truncate" 
-                        placeholder="Startadresse..."
-                        value={details.pickup} 
-                        onChange={e => {updateField('pickup', e.target.value); setActiveInput('pickup'); setShowAvailabilityError(false);}}
-                        onFocus={() => setActiveInput('pickup')}
-                      />
+                      <div className="relative flex items-center">
+                        <input 
+                          className="w-full bg-transparent outline-none font-extrabold text-base md:text-lg text-black truncate pr-8" 
+                          placeholder="Startadresse..."
+                          value={details.pickup} 
+                          onChange={e => {updateField('pickup', e.target.value); setActiveInput('pickup'); setShowAvailabilityError(false);}}
+                          onFocus={() => setActiveInput('pickup')}
+                        />
+                        {details.pickup && (
+                          <button 
+                            onClick={() => { updateField('pickup', ''); setPickupCoords(null); }}
+                            className="absolute right-0 p-1 text-gray-400 hover:text-black transition-colors"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                     <div className="relative">
                       <label className="text-[8px] md:text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Ziel</label>
-                      <input 
-                        className="w-full bg-transparent outline-none font-extrabold text-base md:text-lg text-black truncate" 
-                        placeholder="Zieladresse..." 
-                        value={details.destination}
-                        onChange={e => {updateField('destination', e.target.value); setActiveInput('destination'); setShowAvailabilityError(false);}}
-                        onFocus={() => setActiveInput('destination')}
-                      />
+                      <div className="relative flex items-center">
+                        <input 
+                          className="w-full bg-transparent outline-none font-extrabold text-base md:text-lg text-black truncate pr-8" 
+                          placeholder="Zieladresse..." 
+                          value={details.destination}
+                          onChange={e => {updateField('destination', e.target.value); setActiveInput('destination'); setShowAvailabilityError(false);}}
+                          onFocus={() => setActiveInput('destination')}
+                        />
+                        {details.destination && (
+                          <button 
+                            onClick={() => { updateField('destination', ''); setDestCoords(null); }}
+                            className="absolute right-0 p-1 text-gray-400 hover:text-black transition-colors"
+                          >
+                            <X size={16} />
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     {activeInput && (details.pickup || details.destination || activeInput === 'pickup') && (

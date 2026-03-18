@@ -12,17 +12,15 @@ interface HeroProps {
 }
 
 const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
-  // Hochwertiges Fallback-Bild von Unsplash (Taxi-Thema)
-  const fallbackUrl = "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?q=80&w=1920&auto=format&fit=crop";
-  
-  // Wir starten mit dem lokalen Pfad, versuchen aber sofort Firebase Storage
-  const [imageUrl, setImageUrl] = useState<string>("/hero-taxi.png");
+  // Wir starten ohne Bild und versuchen sofort Firebase Storage
+  const [imageUrl, setImageUrl] = useState<string>("");
   const [isFallback, setIsFallback] = useState(false);
 
   useEffect(() => {
     const fetchImageUrl = async () => {
       console.log("Versuche Bild aus Firebase Storage zu laden...");
-      const fileNames = ['hero-taxi.png', 'hero-taxi.jpg', 'hero-taxi.jpeg', 'IMG_1259.jpeg', 'IMG_1259.JPG'];
+      // BUCHEN.png hat Priorität
+      const fileNames = ['BUCHEN.png', 'hero-taxi.png', 'hero-taxi.jpg', 'hero-taxi.jpeg', 'IMG_1259.jpeg', 'IMG_1259.JPG'];
       
       for (const name of fileNames) {
         try {
@@ -37,9 +35,9 @@ const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
       }
       
       // Wenn wir hier ankommen, wurde im Storage nichts gefunden.
-      // Wir lassen imageUrl auf "/hero-taxi.png" - falls die Datei lokal existiert.
-      // Wenn sie lokal auch fehlt, greift der onError Handler.
-      console.log("Kein Bild im Storage gefunden, warte auf lokales Bild oder Fallback.");
+      // Wir versuchen das lokale Bild als letzten Ausweg, falls es kein "blaues Auto" ist.
+      setImageUrl("/hero-taxi.png");
+      console.log("Kein Bild im Storage gefunden, versuche lokales Bild.");
     };
 
     fetchImageUrl();
@@ -51,20 +49,19 @@ const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
       <div className="relative w-full flex flex-col items-center">
         {/* Background Image - Covers only the hero content part */}
         <div className="absolute top-0 left-0 w-full h-full z-0 bg-gray-900">
-          <img 
-            src={imageUrl} 
-            alt="AS Taxi Hero" 
-            className="w-full h-full object-cover"
-            referrerPolicy="no-referrer"
-            onError={() => {
-              // Falls das Bild (egal ob lokal oder Storage) nicht lädt, Fallback nutzen
-              if (!isFallback) {
-                console.log("Bild konnte nicht geladen werden, nutze Fallback-URL.");
-                setImageUrl(fallbackUrl);
-                setIsFallback(true);
-              }
-            }}
-          />
+          {imageUrl && (
+            <img 
+              src={imageUrl} 
+              alt="AS Taxi Hero" 
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+              onError={() => {
+                // Falls das Bild nicht lädt, zeigen wir einfach den dunklen Hintergrund
+                console.log("Bild konnte nicht geladen werden.");
+                setImageUrl("");
+              }}
+            />
+          )}
           {/* Dark Vignette Overlay */}
           <div className="absolute inset-0 bg-black/40"></div>
           <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/80"></div>
