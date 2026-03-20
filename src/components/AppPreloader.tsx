@@ -39,8 +39,8 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
       // We call onComplete slightly after the exit starts to ensure smooth transition
       setTimeout(() => {
         if (onComplete) onComplete();
-      }, 800);
-    }, 2500);
+      }, 500);
+    }, 1200);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -99,7 +99,7 @@ const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
           <motion.div 
             initial={{ width: 0 }}
             animate={{ width: '100%' }}
-            transition={{ duration: 2, ease: "easeInOut" }}
+            transition={{ duration: 1.2, ease: "easeInOut" }}
             className="absolute bottom-0 left-0 h-1 bg-secondary"
           />
         </motion.div>

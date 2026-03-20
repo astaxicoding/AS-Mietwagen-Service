@@ -6,36 +6,27 @@ import Button from '@/components/AppButton';
 import { Phone, Mail, MessageCircle, Calendar } from 'lucide-react';
 import { CONTACT_INFO } from '@/constants';
 import { storage, ref, getDownloadURL } from '@/firebase';
+import heroLocal from '@/components/hero-taxi.png';
 
 interface HeroProps {
     onOpenBooking?: () => void;
 }
 
 const Hero: React.FC<HeroProps> = ({ onOpenBooking }) => {
-  // Wir starten ohne Bild und versuchen sofort Firebase Storage
-  const [imageUrl, setImageUrl] = useState<string>("");
-  const [isFallback, setIsFallback] = useState(false);
+  // Wir starten mit dem lokalen Bild für optimalen LCP
+  const [imageUrl, setImageUrl] = useState<string>(heroLocal);
 
   useEffect(() => {
     const fetchImageUrl = async () => {
-      console.log("Versuche Bild aus Firebase Storage zu laden...");
-      // BUCHEN.png hat Priorität
-      const fileNames = ['BUCHEN.png', 'hero-taxi.jpg', 'hero-taxi.jpeg', 'IMG_1259.jpeg', 'IMG_1259.JPG'];
-      
-      for (const name of fileNames) {
-        try {
-          const storageRef = ref(storage, name);
-          const url = await getDownloadURL(storageRef);
-          setImageUrl(url);
-          console.log("Bild erfolgreich aus Firebase Storage geladen:", name);
-          return;
-        } catch (error) {
-          // Nächster Name
-        }
+      // Wir versuchen trotzdem, ein aktuelleres Bild aus Firebase zu laden, 
+      // aber das lokale Bild ist bereits da (LCP-Optimierung)
+      try {
+        const storageRef = ref(storage, 'BUCHEN.png');
+        const url = await getDownloadURL(storageRef);
+        setImageUrl(url);
+      } catch (error) {
+        // Fallback bleibt das lokale Bild
       }
-      
-      // Wenn wir hier ankommen, wurde im Storage nichts gefunden.
-      console.log("Kein Bild im Storage gefunden.");
     };
 
     fetchImageUrl();
